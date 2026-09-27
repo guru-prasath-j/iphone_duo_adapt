@@ -67,6 +67,40 @@ void main() {
     expect(tapped, 2);
   });
 
+  testWidgets('rail layout keeps the body clear of the far-edge cutout',
+      (tester) async {
+    // Regression: in landscape the body ran under the camera cutout on the
+    // side opposite the rail.
+    tester.view.physicalSize = const Size(874, 402) * 3;
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(Builder(
+      builder: (context) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          padding: const EdgeInsets.only(left: 62, right: 62),
+          viewPadding: const EdgeInsets.only(left: 62, right: 62),
+        ),
+        child: MaterialApp(
+          home: DuoAdaptiveScaffold(
+            scaffold: Scaffold(
+              body: const SizedBox.expand(key: Key('body')),
+              bottomNavigationBar: BottomNavigationBar(
+                items: const <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(icon: Icon(Icons.inbox), label: 'A'),
+                  BottomNavigationBarItem(icon: Icon(Icons.info), label: 'B'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ));
+    final body = tester.getRect(find.byKey(const Key('body')));
+    expect(body.right, lessThanOrEqualTo(874 - 62));
+    final rail = tester.getRect(find.byType(NavigationRail));
+    expect(rail.left, greaterThanOrEqualTo(62));
+  });
+
   testWidgets('NavigationBar is retrofitted too', (tester) async {
     await _pumpOn(
       tester,
@@ -121,6 +155,49 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Detail 3'), findsOneWidget);
     expect(find.text('Item 3'), findsOneWidget);
+  });
+
+  testWidgets('unfolding with a detail page open shows the split',
+      (tester) async {
+    // Regression: the scaffold used to re-parent its body on unfold, which
+    // reset DuoListDetail and left the pushed page on screen.
+    final posture = ValueNotifier<DuoPosture>(DuoPosture.closedPortrait);
+    tester.view.physicalSize = const Size(890, 890) * 3;
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(ValueListenableBuilder<DuoPosture>(
+      valueListenable: posture,
+      builder: (context, p, _) => MediaQuery(
+        data: _spec.mediaQueryFor(
+            MediaQuery.of(context), p, DuoHingeState.flat),
+        child: MaterialApp(
+          builder: DuoAdapt.builder(),
+          home: DuoAdaptiveScaffold(
+            scaffold: Scaffold(
+              body: listDetail(),
+              bottomNavigationBar: BottomNavigationBar(
+                items: const <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(icon: Icon(Icons.inbox), label: 'A'),
+                  BottomNavigationBarItem(icon: Icon(Icons.info), label: 'B'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Item 3'));
+    await tester.pumpAndSettle();
+    expect(find.text('Detail 3'), findsOneWidget);
+    expect(find.text('Item 3'), findsNothing);
+
+    posture.value = DuoPosture.openWide;
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationRail), findsOneWidget);
+    expect(find.text('Item 3'), findsOneWidget);
+    expect(find.text('Detail 3'), findsOneWidget);
+    expect(find.byType(BackButton), findsNothing);
   });
 
   testWidgets('split panes sit either side of a bent fold', (tester) async {

@@ -3,12 +3,18 @@ import 'dart:ui' show DisplayFeature, DisplayFeatureState, DisplayFeatureType;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
-/// Width bucket used to pick a layout, mirroring iOS size classes.
+import 'config.dart';
+import 'hinge.dart';
+import 'scope.dart';
+
+export 'hinge.dart' show DuoHingeReading, DuoHingeState;
+
+/// Size bucket, mirroring iOS size classes.
 enum DuoSizeClass {
-  /// Narrow: phone-like. Bottom bars, single pane.
+  /// Narrow (width) or short (height).
   compact,
 
-  /// Wide: tablet-like. Side bars, two panes.
+  /// Wide (width) or tall (height).
   regular,
 }
 
@@ -20,66 +26,78 @@ enum DuoPosture {
   /// Folded shut, outer screen, held sideways.
   closedLandscape,
 
-  /// Opened, inner screen, held so it is taller than wide.
+  /// Opened, inner screen, taller than wide.
   openTall,
 
-  /// Opened, inner screen, held so it is wider than tall.
+  /// Opened, inner screen, wider than tall.
   openWide,
 }
 
-/// Coarse hinge state, the same buckets `UIHingeInteraction` reports.
-enum DuoHingeState {
-  /// Folded shut (or not a foldable).
-  closed,
+/// How a bent device is being held.
+enum DuoFoldPose {
+  /// Not bent, or no fold.
+  none,
 
-  /// Partly open, like a laptop or a book on a table.
-  halfOpened,
+  /// Bent with the fold running top to bottom, like an open book.
+  book,
 
-  /// Fully open and flat.
-  flat,
+  /// Bent with the fold running left to right, bottom half on a table.
+  tabletop,
 }
 
-/// Everything a layout needs to know about the current screen shape.
+/// Everything a layout needs to know about the current screen.
 ///
-/// Built from [MediaQueryData.displayFeatures] (populated by Flutter on
-/// Android foldables today and on iPhone Duo once flutter/flutter#193025
-/// lands) plus the logical screen size. Use [DuoLayoutInfo.of] inside a
-/// widget tree.
+/// Built from [MediaQueryData.displayFeatures] (filled by Flutter on Android
+/// foldables, by this package's native bridge on iOS 27.1, or by a preview
+/// or simulation), an optional native hinge reading, and the screen size.
+///
+/// Read it with [DuoLayoutInfo.of]. Every field is public and the
+/// constructor is open, so a custom `DuoAdaptConfig.layoutResolver` can
+/// build any state it wants.
 @immutable
 class DuoLayoutInfo {
-  /// Creates layout info from raw values. Prefer [DuoLayoutInfo.fromMediaQuery].
+  /// Creates layout info from raw values.
   const DuoLayoutInfo({
     required this.size,
+    this.padding = EdgeInsets.zero,
     this.folds = const <Rect>[],
     this.occlusions = const <Rect>[],
     this.hingeState = DuoHingeState.closed,
-    this.regularWidthBreakpoint = 600,
-    this.openShortestSide = 560,
+    this.hingeAngle,
+    this.widthClass = DuoSizeClass.compact,
+    this.heightClass = DuoSizeClass.regular,
+    this.textDirection = TextDirection.ltr,
   });
 
-  /// Derives layout info from a [MediaQueryData].
+  /// Derives layout info from a [MediaQueryData] with the built-in rules.
   factory DuoLayoutInfo.fromMediaQuery(
     MediaQueryData data, {
-    double regularWidthBreakpoint = 600,
-    double openShortestSide = 560,
+    DuoAdaptConfig config = const DuoAdaptConfig(),
+    DuoHingeReading? hinge,
+    TextDirection textDirection = TextDirection.ltr,
   }) {
-    final folds = <Rect>[];
+    final hinges = <Rect>[];
+    final bentFolds = <Rect>[];
     final occlusions = <Rect>[];
-    var hinge = DuoHingeState.closed;
+    var state = DuoHingeState.closed;
     for (final DisplayFeature f in data.displayFeatures) {
       switch (f.type) {
         case DisplayFeatureType.fold:
         case DisplayFeatureType.hinge:
           if (f.state == DisplayFeatureState.postureHalfOpened) {
-            hinge = DuoHingeState.halfOpened;
-          } else if (hinge != DuoHingeState.halfOpened) {
-            hinge = DuoHingeState.flat;
+            state = DuoHingeState.halfOpened;
+          } else if (state != DuoHingeState.halfOpened) {
+            state = DuoHingeState.flat;
           }
-          // A physical hinge always splits the screen. A fold only does
-          // while it is bent; a flat fold is one continuous surface.
-          if (f.type == DisplayFeatureType.hinge ||
-              f.state == DisplayFeatureState.postureHalfOpened) {
-            folds.add(f.bounds);
+          // A physical hinge (two separate panels) always splits the
+          // screen. A fold only does while it is bent; a flat fold is one
+          // continuous surface. Zero-size features never split (see
+          // flutter/flutter#193025).
+          if (f.bounds.width <= 0 || f.bounds.height <= 0) break;
+          if (f.type == DisplayFeatureType.hinge) {
+            hinges.add(f.bounds);
+          } else if (f.state == DisplayFeatureState.postureHalfOpened) {
+            bentFolds.add(f.bounds);
           }
         case DisplayFeatureType.cutout:
           occlusions.add(f.bounds);
@@ -87,92 +105,132 @@ class DuoLayoutInfo {
           break;
       }
     }
-    // No fold reported but the screen is tablet-shaped: treat it as the open,
-    // flat inner display. This is what an iPhone Duo looks like to Flutter
-    // before the engine reports display features.
-    if (hinge == DuoHingeState.closed &&
-        data.size.shortestSide >= openShortestSide) {
-      hinge = DuoHingeState.flat;
+    // A native reading (UIHingeInteraction) is the most accurate source.
+    if (hinge != null && hinge.state != null) {
+      state = hinge.state!;
+    } else if (state == DuoHingeState.closed &&
+        data.size.shortestSide >= config.openShortestSide) {
+      // No hinge data but the screen is tablet-shaped: the flat inner
+      // display, as it looks before the engine reports features.
+      state = DuoHingeState.flat;
     }
+    final folds = <Rect>[
+      ...hinges,
+      if (state == DuoHingeState.halfOpened) ...bentFolds,
+    ];
     return DuoLayoutInfo(
       size: data.size,
+      padding: data.padding,
       folds: folds,
       occlusions: occlusions,
-      hingeState: hinge,
-      regularWidthBreakpoint: regularWidthBreakpoint,
-      openShortestSide: openShortestSide,
+      hingeState: state,
+      hingeAngle: hinge?.angleDegrees,
+      widthClass: data.size.width >= config.regularWidthBreakpoint
+          ? DuoSizeClass.regular
+          : DuoSizeClass.compact,
+      heightClass: data.size.height < config.compactHeightBreakpoint
+          ? DuoSizeClass.compact
+          : DuoSizeClass.regular,
+      textDirection: textDirection,
     );
   }
 
-  /// Reads layout info honouring the nearest `DuoAdapt` settings, or builds it straight
-  /// from [MediaQuery] when there is no scope.
+  /// Current layout info, using the nearest `DuoAdapt` settings, native
+  /// hinge reading and custom resolver. Works without `DuoAdapt` too.
   static DuoLayoutInfo of(BuildContext context) {
-    final scope =
-        context.dependOnInheritedWidgetOfExactType<DuoScopeMarker>();
+    final scope = DuoScope.maybeOf(context);
+    final config = scope?.config ?? const DuoAdaptConfig();
     final data = MediaQuery.of(context);
+    final hinge = scope?.hinge;
+    final resolver = config.layoutResolver;
+    if (resolver != null) return resolver(data, config, hinge);
     return DuoLayoutInfo.fromMediaQuery(
       data,
-      regularWidthBreakpoint: scope?.regularWidthBreakpoint ?? 600,
-      openShortestSide: scope?.openShortestSide ?? 560,
+      config: config,
+      hinge: hinge,
+      textDirection: Directionality.maybeOf(context) ?? TextDirection.ltr,
     );
   }
 
   /// Logical size of the area the app draws in.
   final Size size;
 
-  /// Areas that split the screen: a bent fold or a physical hinge.
+  /// Safe-area padding. Asymmetric on iPhone Duo: read each side separately.
+  final EdgeInsets padding;
+
+  /// Areas that currently split the screen (a bent fold or a hinge).
   final List<Rect> folds;
 
-  /// Areas content should not sit under, such as an inner camera.
+  /// Areas content should not sit under, such as the inner camera.
   final List<Rect> occlusions;
 
   /// Coarse hinge state.
   final DuoHingeState hingeState;
 
-  /// Width at or above which [widthClass] is [DuoSizeClass.regular].
-  final double regularWidthBreakpoint;
+  /// Hinge angle in degrees (180 = flat), when a native source reports it.
+  /// Apple advises using it for effects, not for layout.
+  final double? hingeAngle;
 
-  /// Shortest side at or above which a screen counts as an opened foldable
-  /// when the platform reports no display features.
-  final double openShortestSide;
+  /// Width bucket.
+  final DuoSizeClass widthClass;
 
-  /// Width bucket for choosing bars and pane counts.
-  DuoSizeClass get widthClass => size.width >= regularWidthBreakpoint
-      ? DuoSizeClass.regular
-      : DuoSizeClass.compact;
+  /// Height bucket.
+  final DuoSizeClass heightClass;
+
+  /// Reading direction, used to decide which side is "start".
+  final TextDirection textDirection;
 
   /// Whether the device is open (inner display).
   bool get isOpen => hingeState != DuoHingeState.closed;
 
-  /// Whether a fold or hinge currently divides the screen.
+  /// Whether the app is on the outer display.
+  bool get isOuterDisplay => !isOpen;
+
+  /// Whether a fold currently divides the screen.
   bool get isSeparated => folds.isNotEmpty;
 
   /// The first dividing fold, if any.
   Rect? get fold => folds.isEmpty ? null : folds.first;
 
-  /// Direction the fold line runs. [Axis.vertical] means it splits the
-  /// screen into left and right halves.
+  /// Direction the fold line runs. [Axis.vertical] means left and right
+  /// halves.
   Axis? get foldAxis {
     final f = fold;
     if (f == null) return null;
     return f.height >= f.width ? Axis.vertical : Axis.horizontal;
   }
 
-  /// Current posture, derived from open state and aspect ratio.
+  /// Book or tabletop, when bent.
+  DuoFoldPose get foldPose {
+    if (hingeState != DuoHingeState.halfOpened) return DuoFoldPose.none;
+    final axis = foldAxis ??
+        (size.width >= size.height ? Axis.vertical : Axis.horizontal);
+    return axis == Axis.vertical ? DuoFoldPose.book : DuoFoldPose.tabletop;
+  }
+
+  /// Current posture, from open state and aspect ratio.
   DuoPosture get posture {
     final wide = size.width > size.height;
     if (isOpen) return wide ? DuoPosture.openWide : DuoPosture.openTall;
     return wide ? DuoPosture.closedLandscape : DuoPosture.closedPortrait;
   }
 
-  /// Splits the screen into two panes.
+  /// Whether two panes fit: a fold divides the screen, or the width is
+  /// regular and each pane gets at least [minPaneExtent].
+  bool canSplit({double minPaneExtent = 280, double ratio = 0.4}) {
+    if (isSeparated) return true;
+    if (widthClass != DuoSizeClass.regular) return false;
+    final r = ratio.clamp(0.0, 1.0);
+    return size.width * r >= minPaneExtent &&
+        size.width * (1 - r) >= minPaneExtent;
+  }
+
+  /// Splits the screen into two panes (in screen coordinates).
   ///
-  /// If a fold divides the screen, the panes sit either side of it. If not,
-  /// the screen is split along its long side at [ratio] (share given to the
-  /// first pane). Returns `null` when the width class is compact and there is
-  /// no fold, meaning a single pane is the right call.
-  (Rect, Rect)? panes({double ratio = 0.4}) {
-    final full = Offset.zero & size;
+  /// With a fold, the panes sit either side of it: left/right in book pose,
+  /// top/bottom in tabletop. Without one, the width is split at [ratio].
+  /// Returns `null` when [canSplit] is false.
+  (Rect, Rect)? panes({double ratio = 0.4, double minPaneExtent = 0}) {
     final f = fold;
     if (f != null) {
       if (foldAxis == Axis.vertical) {
@@ -186,31 +244,105 @@ class DuoLayoutInfo {
         Rect.fromLTRB(0, f.bottom, size.width, size.height),
       );
     }
-    if (widthClass == DuoSizeClass.compact) return null;
-    final split = full.width * ratio;
+    if (!canSplit(minPaneExtent: minPaneExtent, ratio: ratio)) return null;
+    final split = size.width * ratio;
     return (
       Rect.fromLTRB(0, 0, split, size.height),
       Rect.fromLTRB(split, 0, size.width, size.height),
     );
   }
 
+  /// The half of the screen that fold-avoiding content should use, or the
+  /// whole screen when there is no fold.
+  Rect areaFor(DuoFoldSide side) {
+    final full = Offset.zero & size;
+    final f = fold;
+    if (f == null) return full;
+    final (a, b) = panes()!;
+    final rtl = textDirection == TextDirection.rtl;
+    final useEnd = side == DuoFoldSide.end;
+    if (foldAxis == Axis.vertical && rtl) return useEnd ? a : b;
+    return useEnd ? b : a;
+  }
+
+  /// Returns a copy with the given values replaced.
+  DuoLayoutInfo copyWith({
+    Size? size,
+    EdgeInsets? padding,
+    List<Rect>? folds,
+    List<Rect>? occlusions,
+    DuoHingeState? hingeState,
+    double? hingeAngle,
+    DuoSizeClass? widthClass,
+    DuoSizeClass? heightClass,
+    TextDirection? textDirection,
+  }) {
+    return DuoLayoutInfo(
+      size: size ?? this.size,
+      padding: padding ?? this.padding,
+      folds: folds ?? this.folds,
+      occlusions: occlusions ?? this.occlusions,
+      hingeState: hingeState ?? this.hingeState,
+      hingeAngle: hingeAngle ?? this.hingeAngle,
+      widthClass: widthClass ?? this.widthClass,
+      heightClass: heightClass ?? this.heightClass,
+      textDirection: textDirection ?? this.textDirection,
+    );
+  }
+
+  /// JSON form, for logs, tests and AI agents.
+  Map<String, Object?> toJson() {
+    List<double> r(Rect x) => <double>[x.left, x.top, x.right, x.bottom];
+    return <String, Object?>{
+      'posture': posture.name,
+      'widthClass': widthClass.name,
+      'heightClass': heightClass.name,
+      'hingeState': hingeState.name,
+      'hingeAngle': hingeAngle,
+      'foldPose': foldPose.name,
+      'size': <double>[size.width, size.height],
+      'padding': <double>[
+        padding.left,
+        padding.top,
+        padding.right,
+        padding.bottom,
+      ],
+      'folds': folds.map(r).toList(),
+      'occlusions': occlusions.map(r).toList(),
+      'textDirection': textDirection.name,
+    };
+  }
+
   @override
   bool operator ==(Object other) =>
       other is DuoLayoutInfo &&
       other.size == size &&
+      other.padding == padding &&
       other.hingeState == hingeState &&
-      other.regularWidthBreakpoint == regularWidthBreakpoint &&
-      other.openShortestSide == openShortestSide &&
+      other.hingeAngle == hingeAngle &&
+      other.widthClass == widthClass &&
+      other.heightClass == heightClass &&
+      other.textDirection == textDirection &&
       _listEq(other.folds, folds) &&
       _listEq(other.occlusions, occlusions);
 
   @override
-  int get hashCode => Object.hash(size, hingeState, regularWidthBreakpoint,
-      openShortestSide, Object.hashAll(folds), Object.hashAll(occlusions));
+  int get hashCode => Object.hash(
+        size,
+        padding,
+        hingeState,
+        hingeAngle,
+        widthClass,
+        heightClass,
+        textDirection,
+        Object.hashAll(folds),
+        Object.hashAll(occlusions),
+      );
 
   @override
-  String toString() =>
-      'DuoLayoutInfo($posture, $widthClass, hinge: $hingeState, folds: $folds)';
+  String toString() => 'DuoLayoutInfo(${posture.name}, '
+      'width: ${widthClass.name}, height: ${heightClass.name}, '
+      'hinge: ${hingeState.name}, pose: ${foldPose.name}, folds: $folds)';
 
   static bool _listEq(List<Rect> a, List<Rect> b) {
     if (a.length != b.length) return false;
@@ -219,28 +351,6 @@ class DuoLayoutInfo {
     }
     return true;
   }
-}
-
-/// Carries [DuoAdapt] settings down the tree. Internal; use [DuoAdapt].
-class DuoScopeMarker extends InheritedWidget {
-  /// Creates the marker.
-  const DuoScopeMarker({
-    super.key,
-    required this.regularWidthBreakpoint,
-    required this.openShortestSide,
-    required super.child,
-  });
-
-  /// See [DuoLayoutInfo.regularWidthBreakpoint].
-  final double regularWidthBreakpoint;
-
-  /// See [DuoLayoutInfo.openShortestSide].
-  final double openShortestSide;
-
-  @override
-  bool updateShouldNotify(DuoScopeMarker oldWidget) =>
-      oldWidget.regularWidthBreakpoint != regularWidthBreakpoint ||
-      oldWidget.openShortestSide != openShortestSide;
 }
 
 /// Marks the widget that fills the (real or simulated) screen, so fold
@@ -261,6 +371,13 @@ class DuoScreenRoot extends SingleChildRenderObjectWidget {
     if (box is! RenderBox || !box.hasSize || !box.attached) return null;
     final root = context.findAncestorRenderObjectOfType<RenderDuoScreenRoot>();
     return box.localToGlobal(Offset.zero, ancestor: root);
+  }
+
+  /// [screenRect] (screen coordinates) mapped into [context]'s local
+  /// coordinates. Returns `null` before the first layout.
+  static Rect? toLocal(BuildContext context, Rect screenRect) {
+    final origin = originOf(context);
+    return origin == null ? null : screenRect.shift(-origin);
   }
 }
 

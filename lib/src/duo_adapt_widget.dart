@@ -3,16 +3,20 @@ import 'dart:ui' show DisplayFeature, DisplayFeatureState, DisplayFeatureType;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+import 'config.dart';
 import 'layout_info.dart';
+import 'native_bridge.dart';
+import 'scope.dart';
 
-/// Forces a fold onto the current screen for testing on devices that do not
-/// report one (an iPhone simulator, a desktop window, an Android tablet).
+/// Forces a fold (and optionally a hinge angle) onto the current screen,
+/// for testing on devices that do not report one.
 @immutable
 class DuoSimulation {
   /// Creates a simulation.
   const DuoSimulation({
     this.hinge = DuoHingeState.halfOpened,
     this.foldThickness = 4,
+    this.angleDegrees,
   });
 
   /// Hinge state to pretend. Only [DuoHingeState.halfOpened] adds a fold.
@@ -21,7 +25,12 @@ class DuoSimulation {
   /// Width of the simulated fold strip in logical pixels.
   final double foldThickness;
 
-  /// Fold feature for a screen of [size], or `null` if none applies.
+  /// Hinge angle to report, in degrees.
+  final double? angleDegrees;
+
+  /// Fold feature for a screen of [size], or `null` if none applies. The
+  /// fold runs top to bottom on wide screens (book) and left to right on
+  /// tall ones (tabletop).
   DisplayFeature? featureFor(Size size) {
     if (hinge != DuoHingeState.halfOpened) return null;
     final t = foldThickness;
@@ -34,11 +43,20 @@ class DuoSimulation {
       state: DisplayFeatureState.postureHalfOpened,
     );
   }
+
+  /// The hinge reading this simulation reports.
+  DuoHingeReading get reading => DuoHingeReading(
+        state: hinge,
+        angleDegrees: angleDegrees ??
+            switch (hinge) {
+              DuoHingeState.closed => 0,
+              DuoHingeState.halfOpened => 110,
+              DuoHingeState.flat => 180,
+            },
+      );
 }
 
 /// Makes an existing app fold-aware with one wrapper.
-///
-/// Put it above or inside your `MaterialApp` / `CupertinoApp`:
 ///
 /// ```dart
 /// MaterialApp(
@@ -47,95 +65,151 @@ class DuoSimulation {
 /// )
 /// ```
 ///
-/// It does three things:
+/// It:
 ///
-/// 1. Publishes settings (breakpoints) read by [DuoLayoutInfo.of] and the
-///    other `Duo*` widgets.
-/// 2. Merges fold data from [featureSource] into
-///    [MediaQueryData.displayFeatures]. Anything Flutter already does with
-///    display features, such as keeping `showDialog` off the fold, then
-///    works with that data too. Use this to plug in a native bridge package
-///    until the Flutter engine reports iPhone Duo folds itself.
-/// 3. Optionally draws the fold ([showFoldOverlay]) and fakes one
-///    ([simulation]) for testing without hardware.
-class DuoAdapt extends StatelessWidget {
+/// 1. Shares a [DuoAdaptConfig] with every `Duo*` widget.
+/// 2. On iOS 27.1+, starts the native bridge and merges the real fold and
+///    camera regions into [MediaQueryData.displayFeatures], so Flutter's own
+///    dialogs, bottom sheets and menus stay off the fold with no other
+///    change. Also exposes the hinge angle.
+/// 3. Merges any [featureSource] / [hingeSource] you provide (your own
+///    bridge, a test) the same way.
+/// 4. Optionally fakes a fold ([simulation]) and draws folds on screen
+///    ([showFoldOverlay]) for debugging.
+class DuoAdapt extends StatefulWidget {
   /// Wraps [child].
   const DuoAdapt({
     super.key,
     required this.child,
-    this.regularWidthBreakpoint = 600,
-    this.openShortestSide = 560,
+    this.config = const DuoAdaptConfig(),
     this.featureSource,
+    this.hingeSource,
+    this.hinge,
     this.simulation,
     this.showFoldOverlay = false,
   });
 
-  /// Returns a `builder` for `MaterialApp.builder` / `CupertinoApp.builder`.
+  /// Returns a `builder` for `MaterialApp.builder` / `CupertinoApp.builder`
+  /// / `WidgetsApp.builder`.
   static TransitionBuilder builder({
-    double regularWidthBreakpoint = 600,
-    double openShortestSide = 560,
+    DuoAdaptConfig config = const DuoAdaptConfig(),
     ValueListenable<List<DisplayFeature>>? featureSource,
+    ValueListenable<DuoHingeReading?>? hingeSource,
     DuoSimulation? simulation,
     bool showFoldOverlay = false,
+    TransitionBuilder? inner,
   }) {
     return (BuildContext context, Widget? child) => DuoAdapt(
-          regularWidthBreakpoint: regularWidthBreakpoint,
-          openShortestSide: openShortestSide,
+          config: config,
           featureSource: featureSource,
+          hingeSource: hingeSource,
           simulation: simulation,
           showFoldOverlay: showFoldOverlay,
-          child: child ?? const SizedBox.shrink(),
+          child: inner != null
+              ? inner(context, child)
+              : child ?? const SizedBox.shrink(),
         );
   }
 
   /// The app.
   final Widget child;
 
-  /// See [DuoLayoutInfo.regularWidthBreakpoint].
-  final double regularWidthBreakpoint;
+  /// Settings for this package.
+  final DuoAdaptConfig config;
 
-  /// See [DuoLayoutInfo.openShortestSide].
-  final double openShortestSide;
-
-  /// Extra display features, for example from a native iPhone Duo bridge.
+  /// Extra display features, for example from your own native bridge.
   /// Merged with what the platform already reports.
   final ValueListenable<List<DisplayFeature>>? featureSource;
+
+  /// Hinge readings from your own source. Wins over the native bridge.
+  final ValueListenable<DuoHingeReading?>? hingeSource;
+
+  /// A fixed hinge reading (used by previews and tests). Wins over
+  /// [hingeSource] and the native bridge.
+  final DuoHingeReading? hinge;
 
   /// Fake fold for testing. Leave `null` in release builds.
   final DuoSimulation? simulation;
 
-  /// Draws a translucent strip over folds and occlusions.
+  /// Draws a translucent strip over folds (red) and occlusions (amber).
   final bool showFoldOverlay;
 
   @override
+  State<DuoAdapt> createState() => _DuoAdaptState();
+}
+
+class _DuoAdaptState extends State<DuoAdapt> {
+  final DuoSlotRegistry _slots = DuoSlotRegistry();
+  DuoLayoutInfo? _lastLogged;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.config.useNativeBridge && DuoNativeBridge.platformHasBridge) {
+      DuoNativeBridge.instance.start();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final source = featureSource;
-    if (source == null) return _build(context, const <DisplayFeature>[]);
-    return ValueListenableBuilder<List<DisplayFeature>>(
-      valueListenable: source,
-      builder: (context, extra, _) => _build(context, extra),
+    final listenables = <Listenable>[
+      if (widget.config.useNativeBridge) DuoNativeBridge.instance.state,
+      if (widget.featureSource != null) widget.featureSource!,
+      if (widget.hingeSource != null) widget.hingeSource!,
+    ];
+    if (listenables.isEmpty) return _build(context);
+    return ListenableBuilder(
+      listenable: Listenable.merge(listenables),
+      builder: (context, _) => _build(context),
     );
   }
 
-  Widget _build(BuildContext context, List<DisplayFeature> extra) {
+  Widget _build(BuildContext context) {
     final base = MediaQuery.of(context);
-    final features = <DisplayFeature>[...base.displayFeatures, ...extra];
-    final simulated = simulation?.featureFor(base.size);
+    final parent = DuoScope.maybeOf(context);
+    final native = widget.config.useNativeBridge
+        ? DuoNativeBridge.instance.state.value
+        : null;
+
+    final features = <DisplayFeature>[...base.displayFeatures];
+    bool has(DisplayFeatureType t) => features.any((f) => f.type == t);
+
+    // Native regions only fill gaps, so nothing is doubled once the engine
+    // reports them itself.
+    if (native != null && native.supported) {
+      for (final f in native.features) {
+        if (!has(f.type)) features.add(f);
+      }
+    }
+    for (final f in widget.featureSource?.value ?? const <DisplayFeature>[]) {
+      features.add(f);
+    }
+    final simulated = widget.simulation?.featureFor(base.size);
     if (simulated != null &&
-        !features.any((f) => f.type == DisplayFeatureType.fold ||
-            f.type == DisplayFeatureType.hinge)) {
+        !has(DisplayFeatureType.fold) &&
+        !has(DisplayFeatureType.hinge)) {
       features.add(simulated);
     }
-    final data = features.length == base.displayFeatures.length
+
+    final hinge = widget.hinge ??
+        widget.hingeSource?.value ??
+        (native != null && native.supported ? native.hinge : null) ??
+        widget.simulation?.reading ??
+        parent?.hinge;
+
+    final data = listEquals(features, base.displayFeatures)
         ? base
         : base.copyWith(displayFeatures: features);
 
-    Widget result = DuoScopeMarker(
-      regularWidthBreakpoint: regularWidthBreakpoint,
-      openShortestSide: openShortestSide,
-      child: DuoScreenRoot(child: child),
+    if (widget.config.debugLog) _log(data, hinge);
+
+    Widget result = DuoScope(
+      config: widget.config,
+      hinge: hinge,
+      slots: _slots,
+      child: DuoScreenRoot(child: widget.child),
     );
-    if (showFoldOverlay) {
+    if (widget.showFoldOverlay) {
       result = Stack(
         textDirection: TextDirection.ltr,
         children: <Widget>[
@@ -145,6 +219,20 @@ class DuoAdapt extends StatelessWidget {
       );
     }
     return MediaQuery(data: data, child: result);
+  }
+
+  void _log(MediaQueryData data, DuoHingeReading? hinge) {
+    final info = widget.config.layoutResolver?.call(data, widget.config, hinge) ??
+        DuoLayoutInfo.fromMediaQuery(data, config: widget.config, hinge: hinge);
+    final last = _lastLogged;
+    if (last == null ||
+        last.posture != info.posture ||
+        last.widthClass != info.widthClass ||
+        last.hingeState != info.hingeState ||
+        last.foldPose != info.foldPose) {
+      widget.config.log('layout ${info.toJson()}');
+    }
+    _lastLogged = info;
   }
 }
 

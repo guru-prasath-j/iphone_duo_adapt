@@ -16,4 +16,7 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
-      - run: dart run iphone_duo_adapt:duo_audit example/lib --fail-on=none
+      - run: cd example && flutter pub get && flutter test
+      - run: cd example && dart run iphone_duo_adapt:duo_audit --fail-on=warning
+      - name: duo_migrate is idempotent on the example
+        run: cd example && dart run iphone_duo_adapt:duo_migrate --json | grep '"files": \[\]'

@@ -7,10 +7,10 @@ import 'layout_info.dart';
 /// Logical screen geometry of a book-style foldable, used for previews and
 /// simulation.
 ///
-/// The [iPhoneDuo] values are derived from Apple's published pixel counts
-/// (outer 1398 x 2034, inner 2670 x 1878) at a 3x scale factor. Treat them as
-/// estimates until you can check them on hardware or in the Xcode 27.1
-/// simulator, and pass your own spec if they differ.
+/// The [iPhoneDuo] values come from Apple's published pixel counts (outer
+/// 1398 x 2034 at 460 ppi, inner 2670 x 1878 at 430 ppi, apple.com/iphone-duo/
+/// specs) at a 3x scale factor. Safe-area insets are estimates: check them in
+/// the Xcode 27.1 simulator and pass your own spec if they differ.
 @immutable
 class DuoDeviceSpec {
   /// Creates a spec.

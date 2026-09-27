@@ -1,0 +1,23 @@
+# iphone_duo_adapt
+
+> Flutter package that makes an existing app iPhone Duo (Apple's foldable) ready: native hinge/fold bridge for iOS 27.1, retrofit widgets for bars and list/detail, fold-aware layout primitives, a desktop preview, a widget-test kit, a static audit, and an automatic code migration.
+
+## Docs
+
+- [README](README.md): install, usage, configuration, preview, testing, audit
+- [AGENTS.md](AGENTS.md): step-by-step recipe for AI agents, JSON schemas, API map, invariants
+- [Coverage](doc/coverage.md): Apple guidance mapped to package features; out-of-scope list
+- [Changelog](CHANGELOG.md)
+
+## Entry points
+
+- `package:iphone_duo_adapt/iphone_duo_adapt.dart`: runtime widgets and `DuoLayoutInfo`
+- `package:iphone_duo_adapt/testing.dart`: `pumpDuo`, `testDuoWidgets`, `DuoScenario`, `expectClearOfFold`, `expectInsideSafeArea`, `expectDuoGolden`
+- `package:iphone_duo_adapt/audit.dart`: `DuoAuditor`, rules, JSON report
+- `package:iphone_duo_adapt/migrate.dart`: `DuoMigrator`, migration steps
+
+## Commands
+
+- `dart run iphone_duo_adapt:duo_audit --json`
+- `dart run iphone_duo_adapt:duo_audit --checklist`
+- `dart run iphone_duo_adapt:duo_migrate --apply --json`
