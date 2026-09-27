@@ -1,0 +1,28 @@
+name: iphone_duo_adapt
+description: Retrofit existing Flutter UIs for iPhone Duo and other foldables. One-line wrapper, rail retrofit for bottom bars, fold-aware list/detail, a posture preview and a code audit.
+version: 0.1.0
+homepage: https://github.com/guru-prasath-j/iphone_duo_adapt
+repository: https://github.com/guru-prasath-j/iphone_duo_adapt
+issue_tracker: https://github.com/guru-prasath-j/iphone_duo_adapt/issues
+topics:
+  - foldable
+  - iphone-duo
+  - adaptive
+  - responsive
+  - layout
+
+environment:
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter
+
+executables:
+  duo_audit:
