@@ -29,7 +29,7 @@ class DuoScenario {
     this.name,
     this.posture, {
     this.hinge = DuoHingeState.flat,
-    this.splitView = false,
+    this.isSplitView = false,
     this.textScale = 1,
   });
 
@@ -62,7 +62,7 @@ class DuoScenario {
 
   /// Half of the inner display, beside another app.
   static const DuoScenario splitView =
-      DuoScenario('split-view', DuoPosture.openWide, splitView: true);
+      DuoScenario('split-view', DuoPosture.openWide, isSplitView: true);
 
   /// Outer display with 2x text.
   static const DuoScenario largeText = DuoScenario(
@@ -95,8 +95,8 @@ class DuoScenario {
   /// Hinge state (only [DuoHingeState.halfOpened] adds a fold).
   final DuoHingeState hinge;
 
-  /// App on half the inner display.
-  final bool splitView;
+  /// App on half the inner display, beside another app.
+  final bool isSplitView;
 
   /// Text scale factor.
   final double textScale;
@@ -117,7 +117,7 @@ class DuoScenario {
     MediaQueryData base = const MediaQueryData(),
   }) {
     var data = spec.mediaQueryFor(base, posture, hinge);
-    if (splitView) {
+    if (isSplitView) {
       final full = data.size;
       data = data.copyWith(
         size: posture == DuoPosture.openWide

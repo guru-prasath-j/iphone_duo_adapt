@@ -1,3 +1,22 @@
+## 0.2.1
+
+### Fixes
+* `package:iphone_duo_adapt/testing.dart` did not compile: the
+  `DuoScenario.splitView` constant clashed with the instance field of the
+  same name. The field is now `DuoScenario.isSplitView` (constructor
+  parameter `isSplitView:`); `DuoScenario.splitView`, `core` and `all` are
+  unchanged. This also restores the static analysis, platform support and
+  dependency-lower-bound pub points lost in 0.2.0.
+* `duo_migrate`: when a file starts directly with a wrapped `Scaffold`, the
+  import was inserted inside `DuoAdaptiveScaffold(scaffold: ...` and a second
+  run wrapped the scaffold again. The import now always goes first, so
+  migration is idempotent.
+
+### Tests
+* New tests for the test kit: every `DuoScenario` (Split View width, text
+  scale, hinge readings) and a `testDuoWidgets` / `pumpDuo` /
+  `expectInsideSafeArea` smoke test across the core scenarios.
+
 ## 0.2.0
 
 Full iPhone Duo coverage. See doc/coverage.md for the mapping to Apple's

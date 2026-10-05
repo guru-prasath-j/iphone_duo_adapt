@@ -217,14 +217,15 @@ class DuoMigrator {
       final imports = RegExp(r'^import\s+[^;]+;[^\n]*$', multiLine: true)
           .allMatches(masked)
           .toList();
+      // Added first so that, at an equal offset (code at the very start of
+      // the file), the import lands before any wrapper text.
       if (imports.isNotEmpty) {
-        inserts.add(_Insert(imports.last.end, '\n$duoImport'));
+        inserts.insert(0, _Insert(imports.last.end, '\n$duoImport'));
       } else {
         final lib = RegExp(r'^library[^;]*;[^\n]*$', multiLine: true)
             .firstMatch(masked);
-        inserts.add(lib != null
-            ? _Insert(lib.end, '\n\n$duoImport')
-            : _Insert(0, '$duoImport\n\n'));
+        final text = lib != null ? '\n\n$duoImport' : '$duoImport\n\n';
+        inserts.insert(0, _Insert(lib?.end ?? 0, text));
       }
     }
 
