@@ -1,16 +1,39 @@
-## 0.2.1
+## 0.3.0
+
+A repair release. `package:iphone_duo_adapt/testing.dart` did not compile in
+0.2.0, which cost the package its static-analysis, platform-support and
+dependency-lower-bound pub points. Minor rather than patch because the fix
+renames a public field.
+
+### Breaking
+* `DuoScenario.splitView` the *constant* and `DuoScenario.splitView` the
+  *instance field* had the same name, which Dart does not allow: the class
+  did not compile, so nothing in `testing.dart` could be used. The field and
+  its constructor parameter are now `isSplitView`. The constants
+  (`DuoScenario.splitView`, `.core`, `.all`, ...) keep their names, so test
+  code that only names scenarios needs no change; code that passed
+  `splitView:` to the `DuoScenario` constructor or read `scenario.splitView`
+  should use `isSplitView`. In practice nothing could have depended on the
+  old spelling, because the library never compiled.
 
 ### Fixes
-* `package:iphone_duo_adapt/testing.dart` did not compile: the
-  `DuoScenario.splitView` constant clashed with the instance field of the
-  same name. The field is now `DuoScenario.isSplitView` (constructor
-  parameter `isSplitView:`); `DuoScenario.splitView`, `core` and `all` are
-  unchanged. This also restores the static analysis, platform support and
-  dependency-lower-bound pub points lost in 0.2.0.
-* `duo_migrate`: when a file starts directly with a wrapped `Scaffold`, the
-  import was inserted inside `DuoAdaptiveScaffold(scaffold: ...` and a second
-  run wrapped the scaffold again. The import now always goes first, so
-  migration is idempotent.
+* `duo_migrate`: when a file started directly with a wrapped `Scaffold`, the
+  `package:iphone_duo_adapt` import was inserted inside
+  `DuoAdaptiveScaffold(scaffold: ...`, and a second run wrapped the scaffold
+  again. The import now always goes first, so migration is idempotent.
+* CI never actually ran. `.github/workflows/ci.yml` had a YAML syntax error
+  on the `duo_migrate` step (an unquoted `: ` inside a plain scalar), so
+  GitHub Actions rejected the whole workflow and every push reported a
+  failure without running `flutter analyze` or `flutter test`. That is how
+  0.2.0 shipped with a library that does not compile. The step now uses a
+  block scalar.
+
+### Tooling
+* CI additionally runs `dart format --output=none --set-exit-if-changed .`,
+  resolves the example before analyzing, and has a second `downgrade` job
+  that runs `flutter pub downgrade` and then analyzes and tests — the same
+  check pub.dev scores for dependency lower bounds.
+* The iOS podspec version follows the package version again.
 
 ### Tests
 * New tests for the test kit: every `DuoScenario` (Split View width, text

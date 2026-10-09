@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'fix/**', 'release/**']
   pull_request:
 
 jobs:
@@ -14,9 +14,28 @@ jobs:
         with:
           channel: stable
       - run: flutter pub get
+      - run: cd example && flutter pub get
+      - run: dart format --output=none --set-exit-if-changed .
       - run: flutter analyze
       - run: flutter test
-      - run: cd example && flutter pub get && flutter test
+      - run: cd example && flutter test
       - run: cd example && dart run iphone_duo_adapt:duo_audit --fail-on=warning
       - name: duo_migrate is idempotent on the example
-        run: cd example && dart run iphone_duo_adapt:duo_migrate --json | grep '"files": \[\]'
+        run: |
+          cd example
+          dart run iphone_duo_adapt:duo_migrate --json | grep '"files": \[\]'
+
+  # Mirrors what pana (the pub.dev scorer) does for the "compatible with
+  # dependency constraint lower bounds" points: resolve every dependency to
+  # the lowest version the constraints allow, then analyze and test.
+  downgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub downgrade
+      - run: cd example && flutter pub get
+      - run: flutter analyze
+      - run: flutter test

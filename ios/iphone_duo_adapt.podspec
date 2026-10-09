@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'iphone_duo_adapt'
-  s.version          = '0.2.0'
+  s.version          = '0.3.0'
   s.summary          = 'iPhone Duo hinge and fold bridge for Flutter.'
   s.description      = <<-DESC
 Reads UIHingeInteraction and UIView reserved regions (iOS 27.1) and sends them

@@ -1,6 +1,6 @@
 name: iphone_duo_adapt
 description: Make an existing Flutter app iPhone Duo ready. Native hinge and fold bridge, rail and split retrofits, fold-safe layouts, preview, test kit, audit and auto-migration.
-version: 0.2.1
+version: 0.3.0
 homepage: https://github.com/guru-prasath-j/iphone_duo_adapt
 repository: https://github.com/guru-prasath-j/iphone_duo_adapt
 issue_tracker: https://github.com/guru-prasath-j/iphone_duo_adapt/issues
