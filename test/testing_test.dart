@@ -40,8 +40,10 @@ void main() {
     });
   });
 
-  testDuoWidgets('centered content stays inside the safe area',
-      (tester, scenario) async {
+  testDuoWidgets('centered content stays inside the safe area', (
+    tester,
+    scenario,
+  ) async {
     await pumpDuo(
       tester,
       const MaterialApp(

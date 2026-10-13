@@ -125,8 +125,11 @@ class _DuoPreviewState extends State<DuoPreview> {
   Widget _buildFrame(BuildContext context) {
     final data = _data(MediaQuery.of(context));
     final hinge = _hinge;
-    final info = DuoLayoutInfo.fromMediaQuery(data,
-        config: widget.config, hinge: hinge);
+    final info = DuoLayoutInfo.fromMediaQuery(
+      data,
+      config: widget.config,
+      hinge: hinge,
+    );
     return Scaffold(
       backgroundColor: const Color(0xFF1E1F22),
       body: SafeArea(
@@ -150,8 +153,9 @@ class _DuoPreviewState extends State<DuoPreview> {
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.all(12),
                         child: SelectableText(
-                          const JsonEncoder.withIndent('  ')
-                              .convert(info.toJson()),
+                          const JsonEncoder.withIndent(
+                            '  ',
+                          ).convert(info.toJson()),
                           style: const TextStyle(
                             color: Colors.white70,
                             fontFamily: 'monospace',
@@ -179,8 +183,7 @@ class _DuoPreviewState extends State<DuoPreview> {
   }
 
   Widget _controls() {
-    Widget chip(String label, bool selected, VoidCallback? onTap) =>
-        FilterChip(
+    Widget chip(String label, bool selected, VoidCallback? onTap) => FilterChip(
           label: Text(label),
           selected: selected,
           onSelected: onTap == null ? null : (_) => onTap(),
@@ -211,31 +214,49 @@ class _DuoPreviewState extends State<DuoPreview> {
                     max: 180,
                     label: '${_angle.round()}°',
                     divisions: 34,
-                    onChanged:
-                        _open ? (v) => setState(() => _angle = v) : null,
+                    onChanged: _open ? (v) => setState(() => _angle = v) : null,
                   ),
                 ),
-                Text('${_angle.round()}°',
-                    style: const TextStyle(color: Colors.white70)),
+                Text(
+                  '${_angle.round()}°',
+                  style: const TextStyle(color: Colors.white70),
+                ),
               ],
             ),
           ),
-          chip('Flat', _open && _angle >= 170,
-              _open ? () => setState(() => _angle = 180) : null),
-          chip('Bent', _open && _angle < 170,
-              _open ? () => setState(() => _angle = 110) : null),
-          chip('Split View', _splitView && _open,
-              _open ? () => setState(() => _splitView = !_splitView) : null),
-          chip('Text ${_textScale == 1 ? '1x' : '${_textScale}x'}',
-              _textScale != 1, () {
-            setState(() => _textScale = _textScale == 1
-                ? 1.3
-                : _textScale == 1.3
-                    ? 2
-                    : 1);
-          }),
-          chip('Fold overlay', _overlay,
-              () => setState(() => _overlay = !_overlay)),
+          chip(
+            'Flat',
+            _open && _angle >= 170,
+            _open ? () => setState(() => _angle = 180) : null,
+          ),
+          chip(
+            'Bent',
+            _open && _angle < 170,
+            _open ? () => setState(() => _angle = 110) : null,
+          ),
+          chip(
+            'Split View',
+            _splitView && _open,
+            _open ? () => setState(() => _splitView = !_splitView) : null,
+          ),
+          chip(
+            'Text ${_textScale == 1 ? '1x' : '${_textScale}x'}',
+            _textScale != 1,
+            () {
+              setState(
+                () => _textScale = _textScale == 1
+                    ? 1.3
+                    : _textScale == 1.3
+                        ? 2
+                        : 1,
+              );
+            },
+          ),
+          chip(
+            'Fold overlay',
+            _overlay,
+            () => setState(() => _overlay = !_overlay),
+          ),
           chip('Info', _info, () => setState(() => _info = !_info)),
         ],
       ),

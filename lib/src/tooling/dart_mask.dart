@@ -65,8 +65,7 @@ String maskDart(String source) {
           blank(2);
           continue;
         }
-        if (ch == q &&
-            (!triple || (at(i + 1) == q && at(i + 2) == q))) {
+        if (ch == q && (!triple || (at(i + 1) == q && at(i + 2) == q))) {
           out.write(triple ? '$q$q$q' : q);
           i += closeLen;
           break;

@@ -70,12 +70,14 @@ class DuoNavigation {
       final dests = <DuoDestination>[];
       for (final d in bar.destinations) {
         if (d is! NavigationDestination) return null;
-        dests.add(DuoDestination(
-          icon: d.icon,
-          selectedIcon: d.selectedIcon,
-          label: d.label,
-          tooltip: d.tooltip,
-        ));
+        dests.add(
+          DuoDestination(
+            icon: d.icon,
+            selectedIcon: d.selectedIcon,
+            label: d.label,
+            tooltip: d.tooltip,
+          ),
+        );
       }
       return DuoNavigation(
         destinations: dests,
@@ -144,7 +146,8 @@ class DuoRailData {
 }
 
 /// Builds a fully custom rail.
-typedef DuoRailBuilder = Widget Function(BuildContext context, DuoRailData data);
+typedef DuoRailBuilder = Widget Function(
+    BuildContext context, DuoRailData data);
 
 /// Retrofits an existing [Scaffold] for wide and unfolded screens.
 ///
@@ -255,20 +258,26 @@ class _DuoAdaptiveScaffoldState extends State<DuoAdaptiveScaffold> {
       key: _bodyKey,
       child: scaffold.body ?? const SizedBox.shrink(),
     );
-    final useRail = widget.showRail?.call(info) ??
-        info.widthClass == DuoSizeClass.regular;
+    final useRail =
+        widget.showRail?.call(info) ?? info.widthClass == DuoSizeClass.regular;
     final nav = useRail
-        ? widget.navigation ?? DuoNavigation.fromBar(scaffold.bottomNavigationBar)
+        ? widget.navigation ??
+            DuoNavigation.fromBar(scaffold.bottomNavigationBar)
         : null;
     if (nav == null || nav.destinations.length < 2) {
-      return _copy(scaffold,
-          body: body, bottomNavigationBar: scaffold.bottomNavigationBar);
+      return _copy(
+        scaffold,
+        body: body,
+        bottomNavigationBar: scaffold.bottomNavigationBar,
+      );
     }
 
     final rtl = Directionality.of(context) == TextDirection.rtl;
     final railOnLeft = (widget.barEdge == DuoBarEdge.leading) != rtl;
-    final max = (widget.maxDestinations ?? config.railMaxDestinations)
-        .clamp(2, nav.destinations.length);
+    final max = (widget.maxDestinations ?? config.railMaxDestinations).clamp(
+      2,
+      nav.destinations.length,
+    );
     var visible = List<int>.generate(nav.destinations.length, (i) => i);
     var overflow = <int>[];
     if (nav.destinations.length > max) {
@@ -302,11 +311,7 @@ class _DuoAdaptiveScaffoldState extends State<DuoAdaptiveScaffold> {
         _defaultRail(context, data, config);
 
     final children = <Widget>[
-      SafeArea(
-        left: railOnLeft,
-        right: !railOnLeft,
-        child: rail,
-      ),
+      SafeArea(left: railOnLeft, right: !railOnLeft, child: rail),
       const VerticalDivider(width: 1, thickness: 1),
       // The body keeps clear of the cutout on the edge opposite the rail.
       Expanded(
@@ -366,7 +371,9 @@ class _DuoAdaptiveScaffoldState extends State<DuoAdaptiveScaffold> {
           ? null
           : (i) => nav.onSelected!(data.visible[i]),
       extended: extend,
-      labelType: extend ? NavigationRailLabelType.none : widget.labelType ?? config.railLabelType,
+      labelType: extend
+          ? NavigationRailLabelType.none
+          : widget.labelType ?? config.railLabelType,
       leading: widget.railLeading,
       trailing: trailing.isEmpty
           ? null

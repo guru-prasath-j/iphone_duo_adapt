@@ -29,28 +29,46 @@ void main() {
 
   group('app-builder', () {
     test('adds the builder and the import', () {
-      final out = _run("import 'package:flutter/material.dart';\n\n"
-          'void main() => runApp(MaterialApp(home: Home()));\n');
+      final out = _run(
+        "import 'package:flutter/material.dart';\n\n"
+        'void main() => runApp(MaterialApp(home: Home()));\n',
+      );
       expect(out, contains('MaterialApp(builder: DuoAdapt.builder(), home:'));
       expect(out, contains(duoImport));
-      expect(out.indexOf(duoImport),
-          greaterThan(out.indexOf('package:flutter/material.dart')));
+      expect(
+        out.indexOf(duoImport),
+        greaterThan(out.indexOf('package:flutter/material.dart')),
+      );
     });
 
     test('wraps an existing builder', () {
-      final out = _run('MaterialApp(\n  builder: (c, w) => Theme(child: w!),\n'
-          '  home: Home(),\n)');
-      expect(out,
-          contains('builder: DuoAdapt.builder(inner: (c, w) => Theme(child: w!)),'));
+      final out = _run(
+        'MaterialApp(\n  builder: (c, w) => Theme(child: w!),\n'
+        '  home: Home(),\n)',
+      );
+      expect(
+        out,
+        contains(
+          'builder: DuoAdapt.builder(inner: (c, w) => Theme(child: w!)),',
+        ),
+      );
     });
 
     test('drops const and handles .router and CupertinoApp', () {
-      expect(_run('const MaterialApp(home: Home())'),
-          startsWith('$duoImport\n\nMaterialApp(builder: DuoAdapt.builder(), '));
-      expect(_run('MaterialApp.router(routerConfig: r)'),
-          contains('MaterialApp.router(builder: DuoAdapt.builder(), routerConfig'));
-      expect(_run('CupertinoApp(home: H())'),
-          contains('CupertinoApp(builder: DuoAdapt.builder(), home'));
+      expect(
+        _run('const MaterialApp(home: Home())'),
+        startsWith('$duoImport\n\nMaterialApp(builder: DuoAdapt.builder(), '),
+      );
+      expect(
+        _run('MaterialApp.router(routerConfig: r)'),
+        contains(
+          'MaterialApp.router(builder: DuoAdapt.builder(), routerConfig',
+        ),
+      );
+      expect(
+        _run('CupertinoApp(home: H())'),
+        contains('CupertinoApp(builder: DuoAdapt.builder(), home'),
+      );
     });
 
     test('is idempotent', () {
@@ -62,8 +80,9 @@ void main() {
   group('scaffold', () {
     test('wraps a Scaffold with a bottom bar', () {
       final out = _run(
-          'return Scaffold(\n  body: b,\n  bottomNavigationBar: NavigationBar(destinations: d),\n);',
-          {DuoMigrationStep.scaffold});
+        'return Scaffold(\n  body: b,\n  bottomNavigationBar: NavigationBar(destinations: d),\n);',
+        {DuoMigrationStep.scaffold},
+      );
       expect(out, contains('return DuoAdaptiveScaffold(scaffold: Scaffold('));
       expect(out.trimRight(), endsWith('));'));
     });
@@ -74,20 +93,27 @@ void main() {
       const nested =
           'Scaffold(body: Foo(bottomNavigationBar: y))'; // not top level
       expect(_run(nested, {DuoMigrationStep.scaffold}), nested);
-      final once = _run('Scaffold(bottomNavigationBar: b)',
-          {DuoMigrationStep.scaffold});
+      final once = _run('Scaffold(bottomNavigationBar: b)', {
+        DuoMigrationStep.scaffold,
+      });
       expect(_run(once, {DuoMigrationStep.scaffold}), once);
     });
 
     test('moves const inside the wrapper', () {
-      final out = _run('const Scaffold(bottomNavigationBar: b)',
-          {DuoMigrationStep.scaffold});
-      expect(out,
-          contains('DuoAdaptiveScaffold(scaffold: const Scaffold(bottomNavigationBar: b))'));
+      final out = _run('const Scaffold(bottomNavigationBar: b)', {
+        DuoMigrationStep.scaffold,
+      });
+      expect(
+        out,
+        contains(
+          'DuoAdaptiveScaffold(scaffold: const Scaffold(bottomNavigationBar: b))',
+        ),
+      );
     });
 
     test('does not touch CupertinoPageScaffold or strings', () {
-      const src = "CupertinoPageScaffold(child: c); print('Scaffold(bottomNavigationBar: x)');";
+      const src =
+          "CupertinoPageScaffold(child: c); print('Scaffold(bottomNavigationBar: x)');";
       expect(_run(src, {DuoMigrationStep.scaffold}), src);
     });
   });
@@ -95,9 +121,10 @@ void main() {
   group('cupertino-tabs', () {
     test('renames the constructor call only', () {
       final out = _run(
-          '// CupertinoTabScaffold( in a comment\n'
-          'return CupertinoTabScaffold(tabBar: t, tabBuilder: b);',
-          {DuoMigrationStep.cupertinoTabs});
+        '// CupertinoTabScaffold( in a comment\n'
+        'return CupertinoTabScaffold(tabBar: t, tabBuilder: b);',
+        {DuoMigrationStep.cupertinoTabs},
+      );
       expect(out, contains('return DuoCupertinoTabScaffold(tabBar'));
       expect(out, contains('// CupertinoTabScaffold( in a comment'));
       expect(_run(out, {DuoMigrationStep.cupertinoTabs}), out);
@@ -105,8 +132,10 @@ void main() {
   });
 
   test('reports edits with lines', () {
-    final r = DuoMigrator().migrate('a.dart',
-        'void main() {\n  runApp(MaterialApp(home: Scaffold(bottomNavigationBar: b)));\n}');
+    final r = DuoMigrator().migrate(
+      'a.dart',
+      'void main() {\n  runApp(MaterialApp(home: Scaffold(bottomNavigationBar: b)));\n}',
+    );
     expect(r.changed, isTrue);
     expect(r.edits.map((e) => e.step), <DuoMigrationStep>[
       DuoMigrationStep.appBuilder,

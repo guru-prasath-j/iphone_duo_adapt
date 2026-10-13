@@ -81,7 +81,11 @@ class DuoNativeState {
       if (r is List && r.length == 4 && r.every((v) => v is num)) {
         final v = r.cast<num>();
         final rect = Rect.fromLTRB(
-            v[0].toDouble(), v[1].toDouble(), v[2].toDouble(), v[3].toDouble());
+          v[0].toDouble(),
+          v[1].toDouble(),
+          v[2].toDouble(),
+          v[3].toDouble(),
+        );
         if (rect.width > 0 && rect.height > 0) yield rect;
       }
     }
@@ -109,8 +113,9 @@ class DuoNativeBridge {
   static const EventChannel _events = EventChannel('iphone_duo_adapt/events');
 
   /// Latest state; `null` until the bridge has answered.
-  final ValueNotifier<DuoNativeState?> state =
-      ValueNotifier<DuoNativeState?>(null);
+  final ValueNotifier<DuoNativeState?> state = ValueNotifier<DuoNativeState?>(
+    null,
+  );
 
   StreamSubscription<Object?>? _sub;
   bool _starting = false;
@@ -129,19 +134,17 @@ class DuoNativeBridge {
     _starting = true;
     try {
       final caps = await _methods.invokeMapMethod<Object?, Object?>(
-          'getCapabilities');
+        'getCapabilities',
+      );
       if (caps == null || caps['supported'] != true) {
         state.value = DuoNativeState.unsupported;
         return;
       }
-      _sub = _events.receiveBroadcastStream().listen(
-        (event) {
-          if (event is Map) {
-            state.value = DuoNativeState.fromMap(event.cast<Object?, Object?>());
-          }
-        },
-        onError: (Object _) => state.value = DuoNativeState.unsupported,
-      );
+      _sub = _events.receiveBroadcastStream().listen((event) {
+        if (event is Map) {
+          state.value = DuoNativeState.fromMap(event.cast<Object?, Object?>());
+        }
+      }, onError: (Object _) => state.value = DuoNativeState.unsupported);
     } on MissingPluginException {
       // Plugin not registered (tests, or an add-to-app host without it).
       state.value = DuoNativeState.unsupported;

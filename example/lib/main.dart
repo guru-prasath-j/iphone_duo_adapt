@@ -77,7 +77,9 @@ class _HomePageState extends State<HomePage> {
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(icon: Icon(Icons.inbox), label: 'Inbox'),
             BottomNavigationBarItem(
-                icon: Icon(Icons.devices_fold), label: 'Device'),
+              icon: Icon(Icons.devices_fold),
+              label: 'Device',
+            ),
           ],
         ),
       ),
@@ -109,11 +111,15 @@ class Inbox extends StatelessWidget {
           ListView(
             padding: const EdgeInsets.all(24),
             children: <Widget>[
-              Text('Message ${i + 1}',
-                  style: Theme.of(context).textTheme.headlineSmall),
+              Text(
+                'Message ${i + 1}',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
               const SizedBox(height: 16),
-              const Text('On the inner display this pane sits beside the '
-                  'list. Bend the hinge and it moves clear of the fold.'),
+              const Text(
+                'On the inner display this pane sits beside the '
+                'list. Bend the hinge and it moves clear of the fold.',
+              ),
             ],
           ),
           // Keeps the reply button on one side of a bent fold.
@@ -156,10 +162,14 @@ class DeviceInfoPage extends StatelessWidget {
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 8),
-              Text('Hinge: ${hinge?.state?.name ?? 'unknown'}'
-                  '${hinge?.angleDegrees == null ? '' : ' at ${hinge!.angleDegrees!.round()}°'}'
-                  ' (${hinge?.source.name ?? 'no source'})'),
-              Text('Native bridge: ${native == null ? 'starting' : native.supported ? 'active' : 'not available here'}'),
+              Text(
+                'Hinge: ${hinge?.state?.name ?? 'unknown'}'
+                '${hinge?.angleDegrees == null ? '' : ' at ${hinge!.angleDegrees!.round()}°'}'
+                ' (${hinge?.source.name ?? 'no source'})',
+              ),
+              Text(
+                'Native bridge: ${native == null ? 'starting' : native.supported ? 'active' : 'not available here'}',
+              ),
               const SizedBox(height: 16),
               SelectableText(
                 const JsonEncoder.withIndent('  ').convert(info.toJson()),

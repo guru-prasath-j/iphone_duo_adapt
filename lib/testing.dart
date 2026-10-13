@@ -35,39 +35,58 @@ class DuoScenario {
 
   /// Outer display, upright.
   static const DuoScenario closedPortrait = DuoScenario(
-      'closed-portrait', DuoPosture.closedPortrait,
-      hinge: DuoHingeState.closed);
+    'closed-portrait',
+    DuoPosture.closedPortrait,
+    hinge: DuoHingeState.closed,
+  );
 
   /// Outer display, sideways.
   static const DuoScenario closedLandscape = DuoScenario(
-      'closed-landscape', DuoPosture.closedLandscape,
-      hinge: DuoHingeState.closed);
+    'closed-landscape',
+    DuoPosture.closedLandscape,
+    hinge: DuoHingeState.closed,
+  );
 
   /// Inner display, flat, wide.
-  static const DuoScenario openWide =
-      DuoScenario('open-wide', DuoPosture.openWide);
+  static const DuoScenario openWide = DuoScenario(
+    'open-wide',
+    DuoPosture.openWide,
+  );
 
   /// Inner display, flat, tall.
-  static const DuoScenario openTall =
-      DuoScenario('open-tall', DuoPosture.openTall);
+  static const DuoScenario openTall = DuoScenario(
+    'open-tall',
+    DuoPosture.openTall,
+  );
 
   /// Inner display bent like a book (vertical fold).
-  static const DuoScenario book = DuoScenario('book', DuoPosture.openWide,
-      hinge: DuoHingeState.halfOpened);
+  static const DuoScenario book = DuoScenario(
+    'book',
+    DuoPosture.openWide,
+    hinge: DuoHingeState.halfOpened,
+  );
 
   /// Inner display bent on a table (horizontal fold).
   static const DuoScenario tabletop = DuoScenario(
-      'tabletop', DuoPosture.openTall,
-      hinge: DuoHingeState.halfOpened);
+    'tabletop',
+    DuoPosture.openTall,
+    hinge: DuoHingeState.halfOpened,
+  );
 
   /// Half of the inner display, beside another app.
-  static const DuoScenario splitView =
-      DuoScenario('split-view', DuoPosture.openWide, isSplitView: true);
+  static const DuoScenario splitView = DuoScenario(
+    'split-view',
+    DuoPosture.openWide,
+    isSplitView: true,
+  );
 
   /// Outer display with 2x text.
   static const DuoScenario largeText = DuoScenario(
-      'large-text', DuoPosture.closedPortrait,
-      hinge: DuoHingeState.closed, textScale: 2);
+    'large-text',
+    DuoPosture.closedPortrait,
+    hinge: DuoHingeState.closed,
+    textScale: 2,
+  );
 
   /// The six postures and hinge states.
   static const List<DuoScenario> core = <DuoScenario>[
@@ -156,11 +175,7 @@ Future<void> pumpDuo(
         spec: spec,
         base: MediaQueryData.fromView(tester.view),
       ),
-      child: DuoAdapt(
-        config: config,
-        hinge: scenario.hingeReading,
-        child: app,
-      ),
+      child: DuoAdapt(config: config, hinge: scenario.hingeReading, child: app),
     ),
   );
   if (settle) {
@@ -182,8 +197,12 @@ void testDuoWidgets(
   Object? tags,
 }) {
   for (final s in scenarios) {
-    testWidgets('$description [${s.name}]', (tester) => body(tester, s),
-        skip: skip, tags: tags);
+    testWidgets(
+      '$description [${s.name}]',
+      (tester) => body(tester, s),
+      skip: skip,
+      tags: tags,
+    );
   }
 }
 

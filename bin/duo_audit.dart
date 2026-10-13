@@ -44,12 +44,16 @@ void main(List<String> args) {
       configPath = a.substring('--config='.length);
     } else if (a == '--rules') {
       for (final r in duoRules) {
-        stdout.writeln('${r.id.padRight(26)} ${r.severity.name.padRight(8)} '
-            '${r.kind.name.padRight(16)} ${r.message}');
+        stdout.writeln(
+          '${r.id.padRight(26)} ${r.severity.name.padRight(8)} '
+          '${r.kind.name.padRight(16)} ${r.message}',
+        );
       }
       for (final r in duoProjectRules) {
-        stdout.writeln('${r.id.padRight(26)} ${r.severity.name.padRight(8)} '
-            '${'project'.padRight(16)} ${r.message}');
+        stdout.writeln(
+          '${r.id.padRight(26)} ${r.severity.name.padRight(8)} '
+          '${'project'.padRight(16)} ${r.message}',
+        );
       }
       return;
     } else if (a == '--checklist') {
@@ -94,7 +98,8 @@ void main(List<String> args) {
   switch (format) {
     case 'json':
       stdout.writeln(
-          const JsonEncoder.withIndent('  ').convert(report.toJson()));
+        const JsonEncoder.withIndent('  ').convert(report.toJson()),
+      );
     case 'markdown':
       _markdown(report);
     case 'github':
@@ -104,9 +109,11 @@ void main(List<String> args) {
           DuoSeverity.warning => 'warning',
           DuoSeverity.info => 'notice',
         };
-        stdout.writeln('::$level file=${f.path},line=${f.line},'
-            'col=${f.column},title=${f.rule.id}::'
-            '${f.rule.message} Fix: ${f.rule.fix}');
+        stdout.writeln(
+          '::$level file=${f.path},line=${f.line},'
+          'col=${f.column},title=${f.rule.id}::'
+          '${f.rule.message} Fix: ${f.rule.fix}',
+        );
       }
     default:
       for (final f in report.findings) {
@@ -115,10 +122,12 @@ void main(List<String> args) {
           ..writeln();
       }
       final c = report.counts;
-      stdout.writeln('Scanned ${report.files} files: '
-          '${c[DuoSeverity.error]} errors, '
-          '${c[DuoSeverity.warning]} warnings, '
-          '${c[DuoSeverity.info]} hints.');
+      stdout.writeln(
+        'Scanned ${report.files} files: '
+        '${c[DuoSeverity.error]} errors, '
+        '${c[DuoSeverity.warning]} warnings, '
+        '${c[DuoSeverity.info]} hints.',
+      );
       if (report.findings.any((f) => f.rule.autofix != null)) {
         stdout.writeln(duoMigrateHint);
       }
@@ -142,14 +151,18 @@ void _markdown(DuoAuditReport report) {
   stdout
     ..writeln('# iPhone Duo audit')
     ..writeln()
-    ..writeln('${report.files} files · ${c[DuoSeverity.error]} errors · '
-        '${c[DuoSeverity.warning]} warnings · ${c[DuoSeverity.info]} hints')
+    ..writeln(
+      '${report.files} files · ${c[DuoSeverity.error]} errors · '
+      '${c[DuoSeverity.warning]} warnings · ${c[DuoSeverity.info]} hints',
+    )
     ..writeln()
     ..writeln('| Severity | Rule | Where | Fix |')
     ..writeln('|---|---|---|---|');
   for (final f in report.findings) {
-    stdout.writeln('| ${f.rule.severity.name} | `${f.rule.id}` | '
-        '`${f.path}:${f.line}` | ${f.rule.fix.replaceAll('|', '\\|')} |');
+    stdout.writeln(
+      '| ${f.rule.severity.name} | `${f.rule.id}` | '
+      '`${f.path}:${f.line}` | ${f.rule.fix.replaceAll('|', '\\|')} |',
+    );
   }
   stdout
     ..writeln()

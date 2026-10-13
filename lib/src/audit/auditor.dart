@@ -141,8 +141,7 @@ class DuoFinding {
       };
 
   @override
-  String toString() =>
-      '$path:$line:$column ${rule.severity.name} [${rule.id}] '
+  String toString() => '$path:$line:$column ${rule.severity.name} [${rule.id}] '
       '${rule.message}\n    fix: ${rule.fix}'
       '${rule.autofix == null ? '' : '\n    auto: dart run iphone_duo_adapt:duo_migrate --only=${rule.autofix}'}';
 }
@@ -155,8 +154,10 @@ final List<DuoRule> duoRules = <DuoRule>[
   DuoRule(
     id: 'physical-size',
     severity: DuoSeverity.error,
-    pattern: RegExp(r'\bphysicalSize\b|\bwindow\.(physicalSize|devicePixelRatio)|'
-        r'\bviews\.first\b|\bWidgetsBinding\.instance\.window\b'),
+    pattern: RegExp(
+      r'\bphysicalSize\b|\bwindow\.(physicalSize|devicePixelRatio)|'
+      r'\bviews\.first\b|\bWidgetsBinding\.instance\.window\b',
+    ),
     message: 'Reads the raw screen. On a foldable the screen changes size '
         'while the app runs (466 pt closed to 890 pt open), so a value read '
         'once goes stale.',
@@ -166,8 +167,10 @@ final List<DuoRule> duoRules = <DuoRule>[
   DuoRule(
     id: 'static-screen-size',
     severity: DuoSeverity.error,
-    pattern: RegExp(r'\b(static|late\s+final|final)\s+[\w<>?]*\s*\w+\s*=\s*'
-        r'MediaQuery\.(of\s*\([^)]*\)\.size|sizeOf\s*\()'),
+    pattern: RegExp(
+      r'\b(static|late\s+final|final)\s+[\w<>?]*\s*\w+\s*=\s*'
+      r'MediaQuery\.(of\s*\([^)]*\)\.size|sizeOf\s*\()',
+    ),
     message: 'Stores the screen size in a field. It will not update when the '
         'device folds or unfolds.',
     fix: 'Read MediaQuery.sizeOf(context) inside build instead of caching it.',
@@ -185,9 +188,11 @@ final List<DuoRule> duoRules = <DuoRule>[
   DuoRule(
     id: 'orientation-branch',
     severity: DuoSeverity.info,
-    pattern: RegExp(r'\borientationOf\s*\(|\.orientation\b|'
-        r'\bOrientation\.(portrait|landscape)\b|\bOrientationBuilder\s*\(|'
-        r'\bsize\.width\s*>\s*\w*\.?size\.height\b'),
+    pattern: RegExp(
+      r'\borientationOf\s*\(|\.orientation\b|'
+      r'\bOrientation\.(portrait|landscape)\b|\bOrientationBuilder\s*\(|'
+      r'\bsize\.width\s*>\s*\w*\.?size\.height\b',
+    ),
     message: 'Layout chosen by orientation. The unfolded Duo is nearly square '
         'and can be "portrait" while having tablet width.',
     fix: 'Branch on available width (LayoutBuilder, MediaQuery.sizeOf, or '
@@ -196,8 +201,10 @@ final List<DuoRule> duoRules = <DuoRule>[
   DuoRule(
     id: 'device-width-constant',
     severity: DuoSeverity.warning,
-    pattern: RegExp(r'((width|Width|shortestSide)\s*(==|!=|<=|>=|<|>)\s*|'
-        r'\bwidth\s*:\s*)(320|375|390|393|402|414|428|430|440)(\.0)?\b'),
+    pattern: RegExp(
+      r'((width|Width|shortestSide)\s*(==|!=|<=|>=|<|>)\s*|'
+      r'\bwidth\s*:\s*)(320|375|390|393|402|414|428|430|440)(\.0)?\b',
+    ),
     message: 'Uses a specific iPhone width. The Duo adds two new widths '
         '(466 and 890 pt) and a near-square shape.',
     fix: 'Use flexible layout (Expanded, FractionallySizedBox, maxWidth) '
@@ -206,8 +213,10 @@ final List<DuoRule> duoRules = <DuoRule>[
   DuoRule(
     id: 'screen-util-design-size',
     severity: DuoSeverity.warning,
-    pattern: RegExp(r'\bScreenUtilInit\s*\(|\bdesignSize\s*:|'
-        r'\bSizer\s*\(|\bResponsiveSizer\s*\('),
+    pattern: RegExp(
+      r'\bScreenUtilInit\s*\(|\bdesignSize\s*:|'
+      r'\bSizer\s*\(|\bResponsiveSizer\s*\(',
+    ),
     message: 'Width-based scaling (flutter_screenutil, sizer). On the 890 pt '
         'inner display every size and font grows about 2x.',
     fix: 'Set a max scale (e.g. ScreenUtilInit(minTextAdapt: true) with '
@@ -217,8 +226,10 @@ final List<DuoRule> duoRules = <DuoRule>[
   DuoRule(
     id: 'width-scaled-font',
     severity: DuoSeverity.warning,
-    pattern: RegExp(r'fontSize\s*:[^,;\n]*(size\.width|sizeOf\([^)]*\)\.width|'
-        r'\.sw\b|\.w\b|screenWidth)'),
+    pattern: RegExp(
+      r'fontSize\s*:[^,;\n]*(size\.width|sizeOf\([^)]*\)\.width|'
+      r'\.sw\b|\.w\b|screenWidth)',
+    ),
     message: 'Font size derived from screen width. Text becomes huge on the '
         'unfolded display.',
     fix: 'Use theme text styles and let the user text size apply; clamp '
@@ -227,8 +238,10 @@ final List<DuoRule> duoRules = <DuoRule>[
   DuoRule(
     id: 'device-type-branch',
     severity: DuoSeverity.info,
-    pattern: RegExp(r'\bis(Tablet|IPad|Ipad|Phone)\b|model[^;\n]*iPad|'
-        r'shortestSide\s*(>=|>)\s*600'),
+    pattern: RegExp(
+      r'\bis(Tablet|IPad|Ipad|Phone)\b|model[^;\n]*iPad|'
+      r'shortestSide\s*(>=|>)\s*600',
+    ),
     message: 'Branches on device type. The unfolded Duo is tablet-sized but '
         'is an iPhone, and Split View makes an iPad phone-sized.',
     fix: 'Decide layout from available size (DuoLayoutInfo.widthClass), not '
@@ -237,7 +250,9 @@ final List<DuoRule> duoRules = <DuoRule>[
   DuoRule(
     id: 'phone-aspect-ratio',
     severity: DuoSeverity.info,
-    pattern: RegExp(r'aspectRatio\s*:\s*(9\s*/\s*(16|19\.5|19|20)|0\.4[0-9]|0\.5[0-6])'),
+    pattern: RegExp(
+      r'aspectRatio\s*:\s*(9\s*/\s*(16|19\.5|19|20)|0\.4[0-9]|0\.5[0-6])',
+    ),
     message: 'Assumes a tall phone aspect ratio. Both Duo displays are about '
         '1.4:1.',
     fix: 'Size media from constraints (LayoutBuilder) or allow letterboxing.',
@@ -246,8 +261,9 @@ final List<DuoRule> duoRules = <DuoRule>[
   DuoRule(
     id: 'bottom-bar',
     severity: DuoSeverity.info,
-    pattern:
-        RegExp(r'\b(BottomNavigationBar|NavigationBar|CupertinoTabBar)\s*\('),
+    pattern: RegExp(
+      r'\b(BottomNavigationBar|NavigationBar|CupertinoTabBar)\s*\(',
+    ),
     message: 'Bottom navigation bar. On the unfolded Duo, iOS 27.1 moves tab '
         'bars to a vertical side bar.',
     fix: 'Wrap the Scaffold in DuoAdaptiveScaffold(scaffold: ...).',
@@ -294,8 +310,10 @@ final List<DuoRule> duoRules = <DuoRule>[
     id: 'ios-device-orientation',
     severity: DuoSeverity.warning,
     kind: DuoFileKind.iosSource,
-    pattern: RegExp(r'UIDevice\.current\.orientation|currentDevice\]\s*orientation|'
-        r'\bstatusBarOrientation\b|\binterfaceOrientation\b'),
+    pattern: RegExp(
+      r'UIDevice\.current\.orientation|currentDevice\]\s*orientation|'
+      r'\bstatusBarOrientation\b|\binterfaceOrientation\b',
+    ),
     message: 'Native code reads the device orientation, which does not '
         'decide layout on the inner display.',
     fix: 'Use size classes (traitCollection.horizontalSizeClass).',
@@ -323,9 +341,11 @@ final List<DuoRule> duoRules = <DuoRule>[
     id: 'android-orientation-lock',
     severity: DuoSeverity.warning,
     kind: DuoFileKind.androidManifest,
-    pattern: RegExp(r'android:screenOrientation\s*=\s*"(portrait|landscape|'
-        r'sensorPortrait|sensorLandscape|userPortrait|userLandscape|'
-        r'reversePortrait|reverseLandscape|nosensor|locked)"'),
+    pattern: RegExp(
+      r'android:screenOrientation\s*=\s*"(portrait|landscape|'
+      r'sensorPortrait|sensorLandscape|userPortrait|userLandscape|'
+      r'reversePortrait|reverseLandscape|nosensor|locked)"',
+    ),
     message: 'Orientation lock on Android. Foldables letterbox locked apps '
         'on the inner screen.',
     fix: 'Remove android:screenOrientation, or use "unspecified".',
@@ -525,15 +545,19 @@ class DuoAuditConfig {
           'android' => DuoFileKind.androidManifest,
           _ => DuoFileKind.dart,
         };
-        custom.add(DuoRule(
-          id: '${r['id']}',
-          severity: DuoSeverity.values.byName('${r['severity'] ?? 'warning'}'),
-          pattern: RegExp('${r['pattern']}'),
-          message: '${r['message'] ?? r['id']}',
-          fix: '${r['fix'] ?? ''}',
-          kind: kind,
-          matchInStrings: r['match_in_strings'] == true,
-        ));
+        custom.add(
+          DuoRule(
+            id: '${r['id']}',
+            severity: DuoSeverity.values.byName(
+              '${r['severity'] ?? 'warning'}',
+            ),
+            pattern: RegExp('${r['pattern']}'),
+            message: '${r['message'] ?? r['id']}',
+            fix: '${r['fix'] ?? ''}',
+            kind: kind,
+            matchInStrings: r['match_in_strings'] == true,
+          ),
+        );
       }
     }
     return DuoAuditConfig(
@@ -602,10 +626,8 @@ class DuoAuditReport {
 /// Runs rules over Dart source, native files, or a whole project.
 class DuoAuditor {
   /// Creates an auditor.
-  DuoAuditor({
-    List<DuoRule>? rules,
-    this.config = const DuoAuditConfig(),
-  }) : _rules = _effective(rules ?? duoRules, config);
+  DuoAuditor({List<DuoRule>? rules, this.config = const DuoAuditConfig()})
+      : _rules = _effective(rules ?? duoRules, config);
 
   /// Settings.
   final DuoAuditConfig config;
@@ -645,8 +667,7 @@ class DuoAuditor {
     final rules = _rules.where((r) => r.kind == kind).toList();
     if (rules.isEmpty) return const <DuoFinding>[];
     final lines = source.split('\n');
-    final masked = kind == DuoFileKind.dart ||
-            kind == DuoFileKind.iosSource
+    final masked = kind == DuoFileKind.dart || kind == DuoFileKind.iosSource
         ? maskDart(source).split('\n')
         : lines;
     final fileIgnores = <String>{};
@@ -670,13 +691,15 @@ class DuoAuditor {
         if (text.trim().isEmpty) continue;
         final m = rule.pattern.firstMatch(text);
         if (m == null) continue;
-        findings.add(DuoFinding(
-          rule: rule,
-          path: path,
-          line: i + 1,
-          column: m.start + 1,
-          source: raw.trim(),
-        ));
+        findings.add(
+          DuoFinding(
+            rule: rule,
+            path: path,
+            line: i + 1,
+            column: m.start + 1,
+            source: raw.trim(),
+          ),
+        );
       }
     }
     return findings;
@@ -689,37 +712,48 @@ class DuoAuditor {
     final severity = _projectSeverity(rule);
     if (severity == null || _ignoredInFile(source, rule.id)) return findings;
     final masked = maskDart(source);
-    final app = RegExp(r'\b(MaterialApp|CupertinoApp|WidgetsApp)(\.router)?\s*\(')
-        .firstMatch(masked);
+    final app = RegExp(
+      r'\b(MaterialApp|CupertinoApp|WidgetsApp)(\.router)?\s*\(',
+    ).firstMatch(masked);
     if (app != null && !RegExp(r'\bDuoAdapt\b').hasMatch(masked)) {
       final (line, col) = lineColumn(source, app.start);
-      findings.add(DuoFinding(
-        rule: rule.asRule(severity),
-        path: path,
-        line: line,
-        column: col,
-        source: source.split('\n')[line - 1].trim(),
-      ));
+      findings.add(
+        DuoFinding(
+          rule: rule.asRule(severity),
+          path: path,
+          line: line,
+          column: col,
+          source: source.split('\n')[line - 1].trim(),
+        ),
+      );
     }
     return findings;
   }
 
   /// Project-level checks for `Info.plist`.
   List<DuoFinding> auditInfoPlist(String path, String source) {
-    final findings = <DuoFinding>[...auditFile(path, source, DuoFileKind.infoPlist)];
-    final scene = duoProjectRules.firstWhere((r) => r.id == 'ios-no-scene-manifest');
+    final findings = <DuoFinding>[
+      ...auditFile(path, source, DuoFileKind.infoPlist),
+    ];
+    final scene = duoProjectRules.firstWhere(
+      (r) => r.id == 'ios-no-scene-manifest',
+    );
     final sceneSeverity = _projectSeverity(scene);
     if (sceneSeverity != null &&
         !source.contains('<key>UIApplicationSceneManifest</key>')) {
-      findings.add(DuoFinding(
-        rule: scene.asRule(sceneSeverity),
-        path: path,
-        line: 1,
-        column: 1,
-        source: '',
-      ));
+      findings.add(
+        DuoFinding(
+          rule: scene.asRule(sceneSeverity),
+          path: path,
+          line: 1,
+          column: 1,
+          source: '',
+        ),
+      );
     }
-    final portrait = duoProjectRules.firstWhere((r) => r.id == 'ios-portrait-only');
+    final portrait = duoProjectRules.firstWhere(
+      (r) => r.id == 'ios-portrait-only',
+    );
     final portraitSeverity = _projectSeverity(portrait);
     final m = RegExp(
       r'<key>UISupportedInterfaceOrientations</key>\s*<array>([\s\S]*?)</array>',
@@ -728,13 +762,15 @@ class DuoAuditor {
         m != null &&
         !m.group(1)!.contains('Landscape')) {
       final (line, col) = lineColumn(source, m.start);
-      findings.add(DuoFinding(
-        rule: portrait.asRule(portraitSeverity),
-        path: path,
-        line: line,
-        column: col,
-        source: '<key>UISupportedInterfaceOrientations</key>',
-      ));
+      findings.add(
+        DuoFinding(
+          rule: portrait.asRule(portraitSeverity),
+          path: path,
+          line: line,
+          column: col,
+          source: '<key>UISupportedInterfaceOrientations</key>',
+        ),
+      );
     }
     return findings;
   }
@@ -775,10 +811,13 @@ class DuoAuditor {
       final type = FileSystemEntity.typeSync(dir);
       final list = type == FileSystemEntityType.file
           ? <File>[File(dir)]
-          : walk(dir, (p) =>
-              p.endsWith('.dart') &&
-              !p.endsWith('.g.dart') &&
-              !p.endsWith('.freezed.dart'));
+          : walk(
+              dir,
+              (p) =>
+                  p.endsWith('.dart') &&
+                  !p.endsWith('.g.dart') &&
+                  !p.endsWith('.freezed.dart'),
+            );
       for (final f in list) {
         if (!f.path.endsWith('.dart')) continue;
         files++;
@@ -788,26 +827,37 @@ class DuoAuditor {
           ..addAll(auditDartProjectRules(rel(f.path), src));
       }
     }
-    for (final f in walk('$root/ios', (p) =>
-        (p.endsWith('.swift') ||
-            p.endsWith('.m') ||
-            p.endsWith('.mm') ||
-            p.endsWith('.h')) &&
-        !p.contains('GeneratedPluginRegistrant'))) {
+    for (final f in walk(
+      '$root/ios',
+      (p) =>
+          (p.endsWith('.swift') ||
+              p.endsWith('.m') ||
+              p.endsWith('.mm') ||
+              p.endsWith('.h')) &&
+          !p.contains('GeneratedPluginRegistrant'),
+    )) {
       files++;
       findings.addAll(
-          auditFile(rel(f.path), f.readAsStringSync(), DuoFileKind.iosSource));
+        auditFile(rel(f.path), f.readAsStringSync(), DuoFileKind.iosSource),
+      );
     }
     final plist = File('$root/ios/Runner/Info.plist');
     if (plist.existsSync()) {
       files++;
-      findings.addAll(auditInfoPlist(rel(plist.path), plist.readAsStringSync()));
+      findings.addAll(
+        auditInfoPlist(rel(plist.path), plist.readAsStringSync()),
+      );
     }
     final manifest = File('$root/android/app/src/main/AndroidManifest.xml');
     if (manifest.existsSync()) {
       files++;
-      findings.addAll(auditFile(rel(manifest.path), manifest.readAsStringSync(),
-          DuoFileKind.androidManifest));
+      findings.addAll(
+        auditFile(
+          rel(manifest.path),
+          manifest.readAsStringSync(),
+          DuoFileKind.androidManifest,
+        ),
+      );
     }
     findings.sort((a, b) {
       final p = a.path.compareTo(b.path);

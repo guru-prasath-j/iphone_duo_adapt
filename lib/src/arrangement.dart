@@ -78,8 +78,9 @@ class DuoArrangement extends StatefulWidget {
 
 class _DuoArrangementState extends State<DuoArrangement> {
   final GlobalKey _primary = GlobalKey(debugLabel: 'DuoArrangement.primary');
-  final GlobalKey _secondary =
-      GlobalKey(debugLabel: 'DuoArrangement.secondary');
+  final GlobalKey _secondary = GlobalKey(
+    debugLabel: 'DuoArrangement.secondary',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -163,14 +164,16 @@ class _DuoFoldAvoidState extends State<DuoFoldAvoid> {
     final child = KeyedSubtree(key: _childKey, child: widget.child);
     if (!info.isSeparated) return child;
     final side = widget.side ?? DuoAdaptConfig.of(context).foldSide;
-    return LayoutBuilder(builder: (context, constraints) {
-      final local = Offset.zero & constraints.biggest;
-      final area = info.areaFor(side).shift(-_origin).intersect(local);
-      if (area.isEmpty || area.width <= 0 || area.height <= 0) return child;
-      return Stack(
-        children: <Widget>[Positioned.fromRect(rect: area, child: child)],
-      );
-    });
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final local = Offset.zero & constraints.biggest;
+        final area = info.areaFor(side).shift(-_origin).intersect(local);
+        if (area.isEmpty || area.width <= 0 || area.height <= 0) return child;
+        return Stack(
+          children: <Widget>[Positioned.fromRect(rect: area, child: child)],
+        );
+      },
+    );
   }
 }
 

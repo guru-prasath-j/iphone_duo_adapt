@@ -71,8 +71,10 @@ class DuoLayoutSwitcher extends StatelessWidget {
       'regular' => regular!,
       _ => compact,
     };
-    final child =
-        KeyedSubtree(key: ValueKey<String>(which), child: builder(context));
+    final child = KeyedSubtree(
+      key: ValueKey<String>(which),
+      child: builder(context),
+    );
     final config = DuoAdaptConfig.of(context);
     final duration = transitionDuration ?? config.transitionDuration;
     if (duration == Duration.zero) return child;
@@ -98,8 +100,7 @@ class DuoPostureObserver extends StatefulWidget {
   });
 
   /// Called with the previous and the new layout info.
-  final void Function(DuoLayoutInfo previous, DuoLayoutInfo current)
-      onChanged;
+  final void Function(DuoLayoutInfo previous, DuoLayoutInfo current) onChanged;
 
   /// Decides whether a change is worth reporting. Defaults to: posture,
   /// width class, height class, hinge state or fold pose changed.

@@ -60,11 +60,15 @@ class DuoDeviceSpec {
   EdgeInsets paddingFor(DuoPosture posture) => switch (posture) {
         DuoPosture.closedPortrait => outerPadding,
         DuoPosture.closedLandscape => EdgeInsets.only(
-            left: outerPadding.top, right: outerPadding.top,
-            bottom: outerPadding.bottom / 2),
+            left: outerPadding.top,
+            right: outerPadding.top,
+            bottom: outerPadding.bottom / 2,
+          ),
         DuoPosture.openWide => innerPadding,
         DuoPosture.openTall => EdgeInsets.only(
-            top: innerPadding.top, bottom: innerPadding.bottom),
+            top: innerPadding.top,
+            bottom: innerPadding.bottom,
+          ),
       };
 
   /// Display features a posture reports. A fold only appears while the

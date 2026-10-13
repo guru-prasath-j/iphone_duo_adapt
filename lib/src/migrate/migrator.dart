@@ -125,8 +125,9 @@ class DuoMigrator {
 
     if (steps.contains(DuoMigrationStep.appBuilder) &&
         !RegExp(r'\bDuoAdapt\b').hasMatch(masked)) {
-      final re =
-          RegExp(r'\b(MaterialApp|CupertinoApp|WidgetsApp)(\.router)?\s*\(');
+      final re = RegExp(
+        r'\b(MaterialApp|CupertinoApp|WidgetsApp)(\.router)?\s*\(',
+      );
       for (final m in re.allMatches(masked)) {
         if (_precededByIdentChar(masked, m.start)) continue;
         final open = m.end - 1;
@@ -135,11 +136,17 @@ class DuoMigrator {
         final args = namedArguments(masked, open);
         final name = '${m.group(1)}${m.group(2) ?? ''}';
         // DuoAdapt.builder() is not const: drop a `const` on the app widget.
-        final constMatch =
-            RegExp(r'\bconst\s+$').firstMatch(masked.substring(0, m.start));
+        final constMatch = RegExp(
+          r'\bconst\s+$',
+        ).firstMatch(masked.substring(0, m.start));
         if (constMatch != null) {
-          inserts.add(_Insert(constMatch.start, '',
-              removeLength: m.start - constMatch.start));
+          inserts.add(
+            _Insert(
+              constMatch.start,
+              '',
+              removeLength: m.start - constMatch.start,
+            ),
+          );
         }
         if (args.containsKey('builder')) {
           final at = args['builder']!;
@@ -147,21 +154,30 @@ class DuoMigrator {
           final valueStart = _skipSpace(masked, colon + 1);
           final valueEnd = _argEnd(masked, valueStart, close);
           final value = source.substring(valueStart, valueEnd).trim();
-          inserts.add(_Insert(valueStart, 'DuoAdapt.builder(inner: $value)',
-              removeLength: valueEnd - valueStart));
-          edits.add(DuoEdit(
-            step: DuoMigrationStep.appBuilder,
-            line: line(at),
-            description: '$name: wrapped existing builder in '
-                'DuoAdapt.builder(inner: ...)',
-          ));
+          inserts.add(
+            _Insert(
+              valueStart,
+              'DuoAdapt.builder(inner: $value)',
+              removeLength: valueEnd - valueStart,
+            ),
+          );
+          edits.add(
+            DuoEdit(
+              step: DuoMigrationStep.appBuilder,
+              line: line(at),
+              description: '$name: wrapped existing builder in '
+                  'DuoAdapt.builder(inner: ...)',
+            ),
+          );
         } else {
           inserts.add(_Insert(open + 1, 'builder: DuoAdapt.builder(), '));
-          edits.add(DuoEdit(
-            step: DuoMigrationStep.appBuilder,
-            line: line(m.start),
-            description: '$name: added builder: DuoAdapt.builder()',
-          ));
+          edits.add(
+            DuoEdit(
+              step: DuoMigrationStep.appBuilder,
+              line: line(m.start),
+              description: '$name: added builder: DuoAdapt.builder()',
+            ),
+          );
         }
       }
     }
@@ -186,12 +202,14 @@ class DuoMigrator {
           inserts.add(_Insert(m.start, '', removeLength: m.group(1)!.length));
           inserts.add(_Insert(scaffoldAt, 'const '));
         }
-        edits.add(DuoEdit(
-          step: DuoMigrationStep.scaffold,
-          line: line(scaffoldAt),
-          description: 'wrapped Scaffold with bottomNavigationBar in '
-              'DuoAdaptiveScaffold',
-        ));
+        edits.add(
+          DuoEdit(
+            step: DuoMigrationStep.scaffold,
+            line: line(scaffoldAt),
+            description: 'wrapped Scaffold with bottomNavigationBar in '
+                'DuoAdaptiveScaffold',
+          ),
+        );
       }
     }
 
@@ -199,31 +217,40 @@ class DuoMigrator {
       final re = RegExp(r'(?<![\w$])CupertinoTabScaffold(?=\s*\()');
       for (final m in re.allMatches(masked)) {
         inserts.add(_Insert(m.start, 'Duo'));
-        edits.add(DuoEdit(
-          step: DuoMigrationStep.cupertinoTabs,
-          line: line(m.start),
-          description: 'CupertinoTabScaffold → DuoCupertinoTabScaffold',
-        ));
+        edits.add(
+          DuoEdit(
+            step: DuoMigrationStep.cupertinoTabs,
+            line: line(m.start),
+            description: 'CupertinoTabScaffold → DuoCupertinoTabScaffold',
+          ),
+        );
       }
     }
 
     if (inserts.isEmpty) {
       return DuoMigrationResult(
-          path: path, original: source, migrated: source, edits: edits);
+        path: path,
+        original: source,
+        migrated: source,
+        edits: edits,
+      );
     }
 
     // Import.
     if (!source.contains(duoImport)) {
-      final imports = RegExp(r'^import\s+[^;]+;[^\n]*$', multiLine: true)
-          .allMatches(masked)
-          .toList();
+      final imports = RegExp(
+        r'^import\s+[^;]+;[^\n]*$',
+        multiLine: true,
+      ).allMatches(masked).toList();
       // Added first so that, at an equal offset (code at the very start of
       // the file), the import lands before any wrapper text.
       if (imports.isNotEmpty) {
         inserts.insert(0, _Insert(imports.last.end, '\n$duoImport'));
       } else {
-        final lib = RegExp(r'^library[^;]*;[^\n]*$', multiLine: true)
-            .firstMatch(masked);
+        final lib = RegExp(
+          r'^library[^;]*;[^\n]*$',
+          multiLine: true,
+        ).firstMatch(masked);
         final text = lib != null ? '\n\n$duoImport' : '$duoImport\n\n';
         inserts.insert(0, _Insert(lib?.end ?? 0, text));
       }
@@ -245,10 +272,17 @@ class DuoMigrator {
     for (final e in indexed) {
       final ins = e.value;
       out = out.replaceRange(
-          ins.offset, ins.offset + ins.removeLength, ins.text);
+        ins.offset,
+        ins.offset + ins.removeLength,
+        ins.text,
+      );
     }
     return DuoMigrationResult(
-        path: path, original: source, migrated: out, edits: edits);
+      path: path,
+      original: source,
+      migrated: out,
+      edits: edits,
+    );
   }
 
   static bool _precededByIdentChar(String s, int i) {

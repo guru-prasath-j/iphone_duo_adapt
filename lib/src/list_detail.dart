@@ -118,9 +118,11 @@ class _DuoListDetailState<T extends Object> extends State<DuoListDetail<T>> {
   // Keeps the list's state (scroll position) when it moves into the split.
   final GlobalKey _listKey = GlobalKey(debugLabel: 'DuoListDetail.list');
 
-  DuoListDetailController<T> get _controller => widget.controller ??
+  DuoListDetailController<T> get _controller =>
+      widget.controller ??
       (_own ??= DuoListDetailController<T>(
-          initialSelection: widget.initialSelection));
+        initialSelection: widget.initialSelection,
+      ));
 
   @override
   void initState() {
@@ -228,7 +230,10 @@ class _DuoListDetailState<T extends Object> extends State<DuoListDetail<T>> {
     final list = KeyedSubtree(
       key: _listKey,
       child: widget.listBuilder(
-          context, split ? selected : null, _controller.select),
+        context,
+        split ? selected : null,
+        _controller.select,
+      ),
     );
     if (!split) return list;
     final config = DuoAdaptConfig.of(context);

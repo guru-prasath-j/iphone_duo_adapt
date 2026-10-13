@@ -15,13 +15,21 @@ Future<void> _pumpOn(
   tester.view.physicalSize = size * 3;
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
-  await tester.pumpWidget(Builder(builder: (context) {
-    final data = _spec.mediaQueryFor(MediaQuery.of(context), posture, hinge);
-    return MediaQuery(
-      data: data,
-      child: MaterialApp(builder: DuoAdapt.builder(), home: child),
-    );
-  }));
+  await tester.pumpWidget(
+    Builder(
+      builder: (context) {
+        final data = _spec.mediaQueryFor(
+          MediaQuery.of(context),
+          posture,
+          hinge,
+        );
+        return MediaQuery(
+          data: data,
+          child: MaterialApp(builder: DuoAdapt.builder(), home: child),
+        );
+      },
+    ),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -67,34 +75,40 @@ void main() {
     expect(tapped, 2);
   });
 
-  testWidgets('rail layout keeps the body clear of the far-edge cutout',
-      (tester) async {
+  testWidgets('rail layout keeps the body clear of the far-edge cutout', (
+    tester,
+  ) async {
     // Regression: in landscape the body ran under the camera cutout on the
     // side opposite the rail.
     tester.view.physicalSize = const Size(874, 402) * 3;
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(Builder(
-      builder: (context) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(
-          padding: const EdgeInsets.only(left: 62, right: 62),
-          viewPadding: const EdgeInsets.only(left: 62, right: 62),
-        ),
-        child: MaterialApp(
-          home: DuoAdaptiveScaffold(
-            scaffold: Scaffold(
-              body: const SizedBox.expand(key: Key('body')),
-              bottomNavigationBar: BottomNavigationBar(
-                items: const <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(icon: Icon(Icons.inbox), label: 'A'),
-                  BottomNavigationBarItem(icon: Icon(Icons.info), label: 'B'),
-                ],
+    await tester.pumpWidget(
+      Builder(
+        builder: (context) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            padding: const EdgeInsets.only(left: 62, right: 62),
+            viewPadding: const EdgeInsets.only(left: 62, right: 62),
+          ),
+          child: MaterialApp(
+            home: DuoAdaptiveScaffold(
+              scaffold: Scaffold(
+                body: const SizedBox.expand(key: Key('body')),
+                bottomNavigationBar: BottomNavigationBar(
+                  items: const <BottomNavigationBarItem>[
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.inbox),
+                      label: 'A',
+                    ),
+                    BottomNavigationBarItem(icon: Icon(Icons.info), label: 'B'),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
-    ));
+    );
     final body = tester.getRect(find.byKey(const Key('body')));
     expect(body.right, lessThanOrEqualTo(874 - 62));
     final rail = tester.getRect(find.byType(NavigationRail));
@@ -157,35 +171,44 @@ void main() {
     expect(find.text('Item 3'), findsOneWidget);
   });
 
-  testWidgets('unfolding with a detail page open shows the split',
-      (tester) async {
+  testWidgets('unfolding with a detail page open shows the split', (
+    tester,
+  ) async {
     // Regression: the scaffold used to re-parent its body on unfold, which
     // reset DuoListDetail and left the pushed page on screen.
     final posture = ValueNotifier<DuoPosture>(DuoPosture.closedPortrait);
     tester.view.physicalSize = const Size(890, 890) * 3;
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(ValueListenableBuilder<DuoPosture>(
-      valueListenable: posture,
-      builder: (context, p, _) => MediaQuery(
-        data: _spec.mediaQueryFor(
-            MediaQuery.of(context), p, DuoHingeState.flat),
-        child: MaterialApp(
-          builder: DuoAdapt.builder(),
-          home: DuoAdaptiveScaffold(
-            scaffold: Scaffold(
-              body: listDetail(),
-              bottomNavigationBar: BottomNavigationBar(
-                items: const <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(icon: Icon(Icons.inbox), label: 'A'),
-                  BottomNavigationBarItem(icon: Icon(Icons.info), label: 'B'),
-                ],
+    await tester.pumpWidget(
+      ValueListenableBuilder<DuoPosture>(
+        valueListenable: posture,
+        builder: (context, p, _) => MediaQuery(
+          data: _spec.mediaQueryFor(
+            MediaQuery.of(context),
+            p,
+            DuoHingeState.flat,
+          ),
+          child: MaterialApp(
+            builder: DuoAdapt.builder(),
+            home: DuoAdaptiveScaffold(
+              scaffold: Scaffold(
+                body: listDetail(),
+                bottomNavigationBar: BottomNavigationBar(
+                  items: const <BottomNavigationBarItem>[
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.inbox),
+                      label: 'A',
+                    ),
+                    BottomNavigationBarItem(icon: Icon(Icons.info), label: 'B'),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
-    ));
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Item 3'));
     await tester.pumpAndSettle();
@@ -211,8 +234,13 @@ void main() {
       hinge: DuoHingeState.halfOpened,
     );
     await tester.pump();
-    final info = DuoLayoutInfo.fromMediaQuery(_spec.mediaQueryFor(
-        const MediaQueryData(), DuoPosture.openWide, DuoHingeState.halfOpened));
+    final info = DuoLayoutInfo.fromMediaQuery(
+      _spec.mediaQueryFor(
+        const MediaQueryData(),
+        DuoPosture.openWide,
+        DuoHingeState.halfOpened,
+      ),
+    );
     final a = tester.getRect(find.byKey(const Key('a')));
     final b = tester.getRect(find.byKey(const Key('b')));
     expect(a.right, moreOrLessEquals(info.fold!.left));
@@ -224,28 +252,33 @@ void main() {
     tester.view.physicalSize = const Size(890, 626) * 3;
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(DuoAdapt(
-      simulation: const DuoSimulation(),
-      child: Builder(builder: (context) {
-        seen = MediaQuery.of(context);
-        return const SizedBox();
-      }),
-    ));
+    await tester.pumpWidget(
+      DuoAdapt(
+        simulation: const DuoSimulation(),
+        child: Builder(
+          builder: (context) {
+            seen = MediaQuery.of(context);
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
     expect(seen.displayFeatures, hasLength(1));
     expect(DuoLayoutInfo.fromMediaQuery(seen).isSeparated, isTrue);
   });
 
-  testWidgets('preview switches postures and keeps app state',
-      (tester) async {
+  testWidgets('preview switches postures and keeps app state', (tester) async {
     tester.view.physicalSize = const Size(1400, 1000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(DuoPreview(
-      initialPosture: DuoPosture.closedPortrait,
-      child: MaterialApp(
-        home: DuoAdaptiveScaffold(scaffold: _legacyScaffold((_) {})),
+    await tester.pumpWidget(
+      DuoPreview(
+        initialPosture: DuoPosture.closedPortrait,
+        child: MaterialApp(
+          home: DuoAdaptiveScaffold(scaffold: _legacyScaffold((_) {})),
+        ),
       ),
-    ));
+    );
     await tester.pumpAndSettle();
     expect(find.byType(BottomNavigationBar), findsOneWidget);
     await tester.tap(find.text('Open, wide'));

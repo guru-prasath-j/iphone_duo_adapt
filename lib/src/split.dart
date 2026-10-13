@@ -140,10 +140,9 @@ class _DuoSplitState extends State<DuoSplit> {
   }
 
   // True when the fold cuts through this widget, leaving room on both sides.
-  static bool _inside(Rect fold, Rect local, Axis axis) =>
-      axis == Axis.vertical
-          ? fold.left > 0 && fold.right < local.width
-          : fold.top > 0 && fold.bottom < local.height;
+  static bool _inside(Rect fold, Rect local, Axis axis) => axis == Axis.vertical
+      ? fold.left > 0 && fold.right < local.width
+      : fold.top > 0 && fold.bottom < local.height;
 
   Widget _foldSplit(
     Rect local,

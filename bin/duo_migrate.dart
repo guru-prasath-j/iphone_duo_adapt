@@ -40,8 +40,10 @@ void main(List<String> args) {
     for (final id in ids) {
       final step = DuoMigrationStep.byId(id);
       if (step == null) {
-        stderr.writeln('Unknown step "$id". Steps: '
-            '${DuoMigrationStep.values.map((s) => s.id).join(', ')}');
+        stderr.writeln(
+          'Unknown step "$id". Steps: '
+          '${DuoMigrationStep.values.map((s) => s.id).join(', ')}',
+        );
         return null;
       }
       out.add(step);
@@ -97,17 +99,21 @@ void main(List<String> args) {
 
   final pubspec = File('pubspec.yaml');
   final hasDependency = pubspec.existsSync() &&
-      RegExp(r'^\s+iphone_duo_adapt\s*:', multiLine: true)
-          .hasMatch(pubspec.readAsStringSync());
+      RegExp(
+        r'^\s+iphone_duo_adapt\s*:',
+        multiLine: true,
+      ).hasMatch(pubspec.readAsStringSync());
 
   if (json) {
-    stdout.writeln(const JsonEncoder.withIndent('  ').convert(<String, Object>{
-      'schema': 'iphone_duo_adapt/migrate@1',
-      'applied': apply,
-      'steps': steps.map((s) => s.id).toList(),
-      'dependencyInPubspec': hasDependency,
-      'files': results.map((r) => r.toJson()).toList(),
-    }));
+    stdout.writeln(
+      const JsonEncoder.withIndent('  ').convert(<String, Object>{
+        'schema': 'iphone_duo_adapt/migrate@1',
+        'applied': apply,
+        'steps': steps.map((s) => s.id).toList(),
+        'dependencyInPubspec': hasDependency,
+        'files': results.map((r) => r.toJson()).toList(),
+      }),
+    );
     return;
   }
 
@@ -126,10 +132,12 @@ void main(List<String> args) {
     stdout.writeln('Add the package first: flutter pub add iphone_duo_adapt');
   }
   if (results.isNotEmpty) {
-    stdout.writeln(apply
-        ? 'Changed ${results.length} files. Now run: dart format lib && '
-            'flutter analyze && flutter test'
-        : 'Dry run. Re-run with --apply to write these changes.');
+    stdout.writeln(
+      apply
+          ? 'Changed ${results.length} files. Now run: dart format lib && '
+              'flutter analyze && flutter test'
+          : 'Dry run. Re-run with --apply to write these changes.',
+    );
   }
 }
 

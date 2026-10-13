@@ -115,8 +115,8 @@ class _DuoCupertinoTabScaffoldState extends State<DuoCupertinoTabScaffold> {
     _visited.add(index);
 
     final info = DuoLayoutInfo.of(context);
-    final useRail = widget.showRail?.call(info) ??
-        info.widthClass == DuoSizeClass.regular;
+    final useRail =
+        widget.showRail?.call(info) ?? info.widthClass == DuoSizeClass.regular;
     final media = MediaQuery.of(context);
     final background = widget.backgroundColor ??
         CupertinoTheme.of(context).scaffoldBackgroundColor;
@@ -160,8 +160,7 @@ class _DuoCupertinoTabScaffoldState extends State<DuoCupertinoTabScaffold> {
                 ),
               ),
             ),
-            if (showBar)
-              Positioned(left: 0, right: 0, bottom: 0, child: bar),
+            if (showBar) Positioned(left: 0, right: 0, bottom: 0, child: bar),
           ],
         ),
       );
@@ -180,7 +179,10 @@ class _DuoCupertinoTabScaffoldState extends State<DuoCupertinoTabScaffold> {
       SafeArea(left: railOnLeft, right: !railOnLeft, child: rail),
       Container(
         width: 0.5,
-        color: CupertinoDynamicColor.resolve(CupertinoColors.separator, context),
+        color: CupertinoDynamicColor.resolve(
+          CupertinoColors.separator,
+          context,
+        ),
       ),
       Expanded(
         child: MediaQuery(
@@ -225,7 +227,9 @@ class _CupertinoRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final active = CupertinoDynamicColor.resolve(
-        bar.activeColor ?? CupertinoTheme.of(context).primaryColor, context);
+      bar.activeColor ?? CupertinoTheme.of(context).primaryColor,
+      context,
+    );
     final inactive = CupertinoDynamicColor.resolve(bar.inactiveColor, context);
     final background = bar.backgroundColor == null
         ? CupertinoTheme.of(context).barBackgroundColor

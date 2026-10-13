@@ -222,7 +222,8 @@ class _DuoAdaptState extends State<DuoAdapt> {
   }
 
   void _log(MediaQueryData data, DuoHingeReading? hinge) {
-    final info = widget.config.layoutResolver?.call(data, widget.config, hinge) ??
+    final info = widget.config.layoutResolver
+            ?.call(data, widget.config, hinge) ??
         DuoLayoutInfo.fromMediaQuery(data, config: widget.config, hinge: hinge);
     final last = _lastLogged;
     if (last == null ||

@@ -21,8 +21,7 @@ void main() {
   });
 
   test('closed sideways: regular width, compact height, still closed', () {
-    final info =
-        DuoLayoutInfo.fromMediaQuery(_mq(spec.outerPortrait.flipped));
+    final info = DuoLayoutInfo.fromMediaQuery(_mq(spec.outerPortrait.flipped));
     expect(info.posture, DuoPosture.closedLandscape);
     expect(info.widthClass, DuoSizeClass.regular);
     expect(info.heightClass, DuoSizeClass.compact);
@@ -43,7 +42,10 @@ void main() {
 
   test('bent wide: book pose, panes either side of the fold', () {
     final data = spec.mediaQueryFor(
-        const MediaQueryData(), DuoPosture.openWide, DuoHingeState.halfOpened);
+      const MediaQueryData(),
+      DuoPosture.openWide,
+      DuoHingeState.halfOpened,
+    );
     final info = DuoLayoutInfo.fromMediaQuery(data);
     expect(info.hingeState, DuoHingeState.halfOpened);
     expect(info.foldAxis, Axis.vertical);
@@ -55,7 +57,10 @@ void main() {
 
   test('bent tall: tabletop pose with a horizontal fold', () {
     final data = spec.mediaQueryFor(
-        const MediaQueryData(), DuoPosture.openTall, DuoHingeState.halfOpened);
+      const MediaQueryData(),
+      DuoPosture.openTall,
+      DuoHingeState.halfOpened,
+    );
     final info = DuoLayoutInfo.fromMediaQuery(data);
     expect(info.posture, DuoPosture.openTall);
     expect(info.foldAxis, Axis.horizontal);
@@ -67,10 +72,15 @@ void main() {
 
   test('areaFor picks the end side, mirrored in RTL for book pose', () {
     final data = spec.mediaQueryFor(
-        const MediaQueryData(), DuoPosture.openWide, DuoHingeState.halfOpened);
+      const MediaQueryData(),
+      DuoPosture.openWide,
+      DuoHingeState.halfOpened,
+    );
     final ltr = DuoLayoutInfo.fromMediaQuery(data);
-    final rtl = DuoLayoutInfo.fromMediaQuery(data,
-        textDirection: TextDirection.rtl);
+    final rtl = DuoLayoutInfo.fromMediaQuery(
+      data,
+      textDirection: TextDirection.rtl,
+    );
     expect(ltr.areaFor(DuoFoldSide.end).left, ltr.fold!.right);
     expect(ltr.areaFor(DuoFoldSide.start).right, ltr.fold!.left);
     expect(rtl.areaFor(DuoFoldSide.end).right, rtl.fold!.left);
@@ -78,42 +88,50 @@ void main() {
     expect(flat.areaFor(DuoFoldSide.end), Offset.zero & spec.innerWide);
   });
 
-  test('flat fold does not separate, hinge always does, cutout is occlusion',
-      () {
-    final info = DuoLayoutInfo.fromMediaQuery(_mq(const Size(900, 700), [
-      const DisplayFeature(
-        bounds: Rect.fromLTWH(450, 0, 1, 700),
-        type: DisplayFeatureType.fold,
-        state: DisplayFeatureState.postureFlat,
-      ),
-      const DisplayFeature(
-        bounds: Rect.fromLTWH(10, 10, 20, 20),
-        type: DisplayFeatureType.cutout,
-        state: DisplayFeatureState.unknown,
-      ),
-    ]));
-    expect(info.isSeparated, isFalse);
-    expect(info.hingeState, DuoHingeState.flat);
-    expect(info.occlusions, hasLength(1));
+  test(
+    'flat fold does not separate, hinge always does, cutout is occlusion',
+    () {
+      final info = DuoLayoutInfo.fromMediaQuery(
+        _mq(const Size(900, 700), [
+          const DisplayFeature(
+            bounds: Rect.fromLTWH(450, 0, 1, 700),
+            type: DisplayFeatureType.fold,
+            state: DisplayFeatureState.postureFlat,
+          ),
+          const DisplayFeature(
+            bounds: Rect.fromLTWH(10, 10, 20, 20),
+            type: DisplayFeatureType.cutout,
+            state: DisplayFeatureState.unknown,
+          ),
+        ]),
+      );
+      expect(info.isSeparated, isFalse);
+      expect(info.hingeState, DuoHingeState.flat);
+      expect(info.occlusions, hasLength(1));
 
-    final hinged = DuoLayoutInfo.fromMediaQuery(_mq(const Size(900, 700), [
-      const DisplayFeature(
-        bounds: Rect.fromLTWH(440, 0, 20, 700),
-        type: DisplayFeatureType.hinge,
-        state: DisplayFeatureState.postureFlat,
-      ),
-    ]));
-    expect(hinged.isSeparated, isTrue);
-  });
+      final hinged = DuoLayoutInfo.fromMediaQuery(
+        _mq(const Size(900, 700), [
+          const DisplayFeature(
+            bounds: Rect.fromLTWH(440, 0, 20, 700),
+            type: DisplayFeatureType.hinge,
+            state: DisplayFeatureState.postureFlat,
+          ),
+        ]),
+      );
+      expect(hinged.isSeparated, isTrue);
+    },
+  );
 
   test('zero-width fold never splits the screen', () {
-    final info = DuoLayoutInfo.fromMediaQuery(_mq(const Size(900, 700), [
-      const DisplayFeature(
-        bounds: Rect.fromLTWH(450, 0, 0, 700),
-        type: DisplayFeatureType.fold,
-        state: DisplayFeatureState.postureHalfOpened,
-      ),
-    ]));
+    final info = DuoLayoutInfo.fromMediaQuery(
+      _mq(const Size(900, 700), [
+        const DisplayFeature(
+          bounds: Rect.fromLTWH(450, 0, 0, 700),
+          type: DisplayFeatureType.fold,
+          state: DisplayFeatureState.postureHalfOpened,
+        ),
+      ]),
+    );
     expect(info.hingeState, DuoHingeState.halfOpened);
     expect(info.isSeparated, isFalse);
     // Pose still known from the aspect ratio.
@@ -124,13 +142,18 @@ void main() {
     final closed = DuoLayoutInfo.fromMediaQuery(
       _mq(spec.innerWide),
       hinge: const DuoHingeReading(
-          state: DuoHingeState.closed, source: DuoHingeSource.native),
+        state: DuoHingeState.closed,
+        source: DuoHingeSource.native,
+      ),
     );
     expect(closed.isOpen, isFalse);
     // Split View on the inner display is narrow but still open.
     final split = DuoLayoutInfo.fromMediaQuery(
       _mq(const Size(441, 626)),
-      hinge: const DuoHingeReading(state: DuoHingeState.flat, angleDegrees: 180),
+      hinge: const DuoHingeReading(
+        state: DuoHingeState.flat,
+        angleDegrees: 180,
+      ),
     );
     expect(split.isOpen, isTrue);
     expect(split.widthClass, DuoSizeClass.compact);
@@ -139,8 +162,10 @@ void main() {
 
   test('config breakpoints are honoured', () {
     const config = DuoAdaptConfig(regularWidthBreakpoint: 1000);
-    final info =
-        DuoLayoutInfo.fromMediaQuery(_mq(spec.innerWide), config: config);
+    final info = DuoLayoutInfo.fromMediaQuery(
+      _mq(spec.innerWide),
+      config: config,
+    );
     expect(info.widthClass, DuoSizeClass.compact);
     expect(info.canSplit(), isFalse);
   });
@@ -154,19 +179,33 @@ void main() {
 
   test('simulated flat hinge reports no fold (matches iOS)', () {
     expect(spec.featuresFor(DuoPosture.openWide, DuoHingeState.flat), isEmpty);
-    expect(spec.featuresFor(DuoPosture.closedPortrait, DuoHingeState.halfOpened),
-        isEmpty);
+    expect(
+      spec.featuresFor(DuoPosture.closedPortrait, DuoHingeState.halfOpened),
+      isEmpty,
+    );
   });
 
   test('toJson has everything an agent needs', () {
     final data = spec.mediaQueryFor(
-        const MediaQueryData(), DuoPosture.openWide, DuoHingeState.halfOpened);
+      const MediaQueryData(),
+      DuoPosture.openWide,
+      DuoHingeState.halfOpened,
+    );
     final json = DuoLayoutInfo.fromMediaQuery(data).toJson();
     expect(json['posture'], 'openWide');
     expect(json['foldPose'], 'book');
     expect(json['folds'], hasLength(1));
-    expect(json.keys, containsAll(<String>['widthClass', 'heightClass',
-        'hingeState', 'size', 'padding', 'occlusions']));
+    expect(
+      json.keys,
+      containsAll(<String>[
+        'widthClass',
+        'heightClass',
+        'hingeState',
+        'size',
+        'padding',
+        'occlusions',
+      ]),
+    );
   });
 
   test('hinge reading from angle uses Apple-like thresholds', () {

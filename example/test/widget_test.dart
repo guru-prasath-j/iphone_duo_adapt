@@ -21,8 +21,7 @@ void main() {
     expect(find.text('Message 1'), findsNothing);
   });
 
-  testWidgets('open: side rail with list and message together',
-      (tester) async {
+  testWidgets('open: side rail with list and message together', (tester) async {
     await pumpAt(tester, DuoDeviceSpec.iPhoneDuo.innerWide);
     expect(find.byType(NavigationRail), findsOneWidget);
     expect(find.text('Select a message'), findsOneWidget);
