@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iphone_duo_adapt/audit.dart';
+import 'package:flutter_iphone_duo_adapt/audit.dart';
 
 List<String> _ids(String src, {DuoAuditConfig? config}) => DuoAuditor(
       config: config ?? const DuoAuditConfig(),

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iphone_duo_adapt/migrate.dart';
-import 'package:iphone_duo_adapt/src/tooling/dart_mask.dart';
+import 'package:flutter_iphone_duo_adapt/migrate.dart';
+import 'package:flutter_iphone_duo_adapt/src/tooling/dart_mask.dart';
 
 String _run(String src, [Set<DuoMigrationStep>? steps]) =>
     DuoMigrator(steps: steps).migrate('a.dart', src).migrated;

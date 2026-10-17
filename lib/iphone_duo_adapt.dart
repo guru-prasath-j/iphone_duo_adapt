@@ -6,9 +6,9 @@
 /// [DuoArrangement] and [DuoFoldAvoid] where layouts need them. Every
 /// setting lives in [DuoAdaptConfig].
 ///
-/// Tools: `dart run iphone_duo_adapt:duo_audit` finds code that breaks on
-/// foldables; `dart run iphone_duo_adapt:duo_migrate` applies the retrofit.
-/// Tests: `package:iphone_duo_adapt/testing.dart`.
+/// Tools: `dart run flutter_iphone_duo_adapt:duo_audit` finds code that breaks on
+/// foldables; `dart run flutter_iphone_duo_adapt:duo_migrate` applies the retrofit.
+/// Tests: `package:flutter_iphone_duo_adapt/testing.dart`.
 library;
 
 export 'src/arrangement.dart';

@@ -1,4 +1,4 @@
-# iphone_duo_adapt
+# flutter_iphone_duo_adapt
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -28,14 +28,14 @@ agent (or want a deterministic recipe).
 ## Install
 
 ```sh
-flutter pub add iphone_duo_adapt
+flutter pub add flutter_iphone_duo_adapt
 ```
 
 ## Retrofit an app in three commands
 
 ```sh
-dart run iphone_duo_adapt:duo_audit              # what breaks, and where
-dart run iphone_duo_adapt:duo_migrate --apply     # apply the safe fixes
+dart run flutter_iphone_duo_adapt:duo_audit              # what breaks, and where
+dart run flutter_iphone_duo_adapt:duo_migrate --apply     # apply the safe fixes
 dart format lib && flutter analyze && flutter test
 ```
 
@@ -179,7 +179,7 @@ try Split View and large text, and open the live `DuoLayoutInfo` panel.
 ## Testing
 
 ```dart
-import 'package:iphone_duo_adapt/testing.dart';
+import 'package:flutter_iphone_duo_adapt/testing.dart';
 
 testDuoWidgets('pay button is always usable', (tester, scenario) async {
   await pumpDuo(tester, const MyApp(), scenario: scenario);
@@ -195,9 +195,9 @@ Scenarios: `closedPortrait`, `closedLandscape`, `openWide`, `openTall`,
 ## Audit
 
 ```sh
-dart run iphone_duo_adapt:duo_audit [paths] [--format=text|json|markdown|github] [--fail-on=warning]
-dart run iphone_duo_adapt:duo_audit --rules       # list rules
-dart run iphone_duo_adapt:duo_audit --checklist   # what a scan cannot see
+dart run flutter_iphone_duo_adapt:duo_audit [paths] [--format=text|json|markdown|github] [--fail-on=warning]
+dart run flutter_iphone_duo_adapt:duo_audit --rules       # list rules
+dart run flutter_iphone_duo_adapt:duo_audit --checklist   # what a scan cannot see
 ```
 
 Scans `lib/`, native iOS sources, `ios/Runner/Info.plist` and the Android

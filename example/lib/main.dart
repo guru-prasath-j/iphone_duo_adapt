@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:iphone_duo_adapt/iphone_duo_adapt.dart';
+import 'package:flutter_iphone_duo_adapt/iphone_duo_adapt.dart';
 
 // A typical phone-only mail app, retrofitted with small changes marked
 // "iphone_duo_adapt". Remove them and it is the app you started with.

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iphone_duo_adapt/iphone_duo_adapt.dart';
+import 'package:flutter_iphone_duo_adapt/iphone_duo_adapt.dart';
 import 'package:iphone_duo_adapt_example/main.dart';
 
 void main() {

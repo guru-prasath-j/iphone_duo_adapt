@@ -7,7 +7,7 @@ import 'scaffold.dart' show DuoBarEdge;
 /// a vertical rail on regular width.
 ///
 /// Same constructor as [CupertinoTabScaffold], so migrating is a rename
-/// (`dart run iphone_duo_adapt:duo_migrate` does it for you). Each tab keeps
+/// (`dart run flutter_iphone_duo_adapt:duo_migrate` does it for you). Each tab keeps
 /// its state, including its navigation stack, when the device folds or
 /// unfolds. It uses no Material widgets, so it works inside `CupertinoApp`.
 class DuoCupertinoTabScaffold extends StatefulWidget {

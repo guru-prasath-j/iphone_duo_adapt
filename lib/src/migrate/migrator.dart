@@ -1,6 +1,6 @@
 /// Source transformations that retrofit an existing app for iPhone Duo.
 ///
-/// Pure Dart; used by `dart run iphone_duo_adapt:duo_migrate`. Every step is
+/// Pure Dart; used by `dart run flutter_iphone_duo_adapt:duo_migrate`. Every step is
 /// conservative: it only rewrites code it fully understands, never touches
 /// comments or strings, and leaves files that already use the package
 /// alone. Run `dart format` afterwards.
@@ -10,7 +10,7 @@ import '../tooling/dart_mask.dart';
 
 /// Import line added to changed files.
 const String duoImport =
-    "import 'package:iphone_duo_adapt/iphone_duo_adapt.dart';";
+    "import 'package:flutter_iphone_duo_adapt/iphone_duo_adapt.dart';";
 
 /// Migration steps, by id.
 enum DuoMigrationStep {

@@ -2,7 +2,7 @@ import 'dart:ui' show DisplayFeature, DisplayFeatureState, DisplayFeatureType;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iphone_duo_adapt/iphone_duo_adapt.dart';
+import 'package:flutter_iphone_duo_adapt/iphone_duo_adapt.dart';
 
 MediaQueryData _mq(Size size, [List<DisplayFeature> f = const []]) =>
     MediaQueryData(size: size, displayFeatures: f);

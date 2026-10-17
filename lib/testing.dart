@@ -2,7 +2,7 @@
 /// nothing sits on the fold or outside the safe area.
 ///
 /// ```dart
-/// import 'package:iphone_duo_adapt/testing.dart';
+/// import 'package:flutter_iphone_duo_adapt/testing.dart';
 ///
 /// void main() {
 ///   testDuoWidgets('checkout button stays usable', (tester, scenario) async {

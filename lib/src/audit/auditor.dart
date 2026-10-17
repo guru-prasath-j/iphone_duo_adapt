@@ -2,7 +2,7 @@
 /// other foldables.
 ///
 /// Pure Dart (no Flutter import) so it runs from the command line with
-/// `dart run iphone_duo_adapt:duo_audit`, and from your own tools.
+/// `dart run flutter_iphone_duo_adapt:duo_audit`, and from your own tools.
 library;
 
 import 'dart:io';
@@ -143,10 +143,10 @@ class DuoFinding {
   @override
   String toString() => '$path:$line:$column ${rule.severity.name} [${rule.id}] '
       '${rule.message}\n    fix: ${rule.fix}'
-      '${rule.autofix == null ? '' : '\n    auto: dart run iphone_duo_adapt:duo_migrate --only=${rule.autofix}'}';
+      '${rule.autofix == null ? '' : '\n    auto: dart run flutter_iphone_duo_adapt:duo_migrate --only=${rule.autofix}'}';
 }
 
-const String _migrateHint = 'dart run iphone_duo_adapt:duo_migrate';
+const String _migrateHint = 'dart run flutter_iphone_duo_adapt:duo_migrate';
 
 /// The built-in rules.
 final List<DuoRule> duoRules = <DuoRule>[

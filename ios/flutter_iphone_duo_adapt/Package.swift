@@ -4,24 +4,24 @@
 import PackageDescription
 
 let package = Package(
-    name: "iphone_duo_adapt",
+    name: "flutter_iphone_duo_adapt",
     platforms: [
         .iOS("13.0")
     ],
     products: [
-        .library(name: "iphone-duo-adapt", targets: ["iphone_duo_adapt"])
+        .library(name: "flutter-iphone-duo-adapt", targets: ["flutter_iphone_duo_adapt"])
     ],
     dependencies: [
         .package(name: "FlutterFramework", path: "../FlutterFramework")
     ],
     targets: [
         .target(
-            name: "iphone_duo_adapt",
+            name: "flutter_iphone_duo_adapt",
             dependencies: [
                 .product(name: "FlutterFramework", package: "FlutterFramework")
             ],
             cSettings: [
-                .headerSearchPath("include/iphone_duo_adapt")
+                .headerSearchPath("include/flutter_iphone_duo_adapt")
             ]
         )
     ]
