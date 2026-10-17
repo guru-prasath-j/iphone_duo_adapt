@@ -1,5 +1,5 @@
 name: iphone_duo_adapt_example
-description: Shows iphone_duo_adapt retrofitting a phone-only app for iPhone Duo.
+description: Shows flutter_iphone_duo_adapt retrofitting a phone-only app for iPhone Duo.
 publish_to: none
 
 environment:
@@ -8,7 +8,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  iphone_duo_adapt:
+  flutter_iphone_duo_adapt:
     path: ../
 
 dev_dependencies:

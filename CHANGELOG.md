@@ -1,3 +1,17 @@
+## 0.2.2
+
+### Changed
+* Swift Package Manager support: the iOS plugin now lives in
+  `ios/flutter_iphone_duo_adapt/Package.swift` (product
+  `flutter-iphone-duo-adapt`), matching the package name, so Flutter's SPM
+  integration picks it up. CocoaPods keeps working through
+  `ios/flutter_iphone_duo_adapt.podspec`.
+* README, `llms.txt` and the `duo_audit` / `duo_migrate` help text use the
+  published name: `flutter pub add flutter_iphone_duo_adapt` and
+  `dart run flutter_iphone_duo_adapt:duo_audit`.
+* `duo_migrate` detects the package in `pubspec.yaml` under its published
+  name.
+
 ## 0.2.1
 
 ### Fixes

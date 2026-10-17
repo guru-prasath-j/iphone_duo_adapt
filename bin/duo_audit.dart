@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:iphone_duo_adapt/audit.dart';
+import 'package:flutter_iphone_duo_adapt/audit.dart';
 
 const String _usage = '''
 Find code and settings that break on iPhone Duo and other foldables.
 
-Usage: dart run iphone_duo_adapt:duo_audit [paths...] [options]
+Usage: dart run flutter_iphone_duo_adapt:duo_audit [paths...] [options]
 
 Run it in your app's root folder. It scans lib/ (or the paths you give),
 native iOS sources, ios/Runner/Info.plist and the Android manifest.
@@ -22,7 +22,7 @@ native iOS sources, ios/Runner/Info.plist and the Android manifest.
 
 Silence a line with   // duo-ignore: <rule-id>
 Silence a file with   // duo-ignore-file: <rule-id>
-Fix automatically     dart run iphone_duo_adapt:duo_migrate
+Fix automatically     dart run flutter_iphone_duo_adapt:duo_migrate
 ''';
 
 void main(List<String> args) {

@@ -10,7 +10,7 @@ import '../tooling/dart_mask.dart';
 
 /// Import line added to changed files.
 const String duoImport =
-    "import 'package:iphone_duo_adapt/iphone_duo_adapt.dart';";
+    "import 'package:flutter_iphone_duo_adapt/iphone_duo_adapt.dart';";
 
 /// Migration steps, by id.
 enum DuoMigrationStep {

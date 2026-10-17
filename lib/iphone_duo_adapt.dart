@@ -8,7 +8,7 @@
 ///
 /// Tools: `dart run iphone_duo_adapt:duo_audit` finds code that breaks on
 /// foldables; `dart run iphone_duo_adapt:duo_migrate` applies the retrofit.
-/// Tests: `package:iphone_duo_adapt/testing.dart`.
+/// Tests: `package:flutter_iphone_duo_adapt/testing.dart`.
 library;
 
 export 'src/arrangement.dart';

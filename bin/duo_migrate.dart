@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:iphone_duo_adapt/migrate.dart';
+import 'package:flutter_iphone_duo_adapt/migrate.dart';
 
 const String _usage = '''
 Retrofit an existing Flutter app for iPhone Duo.
 
-Usage: dart run iphone_duo_adapt:duo_migrate [paths...] [options]
+Usage: dart run flutter_iphone_duo_adapt:duo_migrate [paths...] [options]
 
 Shows what it would change by default. Nothing is written without --apply.
 
@@ -97,7 +97,7 @@ void main(List<String> args) {
 
   final pubspec = File('pubspec.yaml');
   final hasDependency = pubspec.existsSync() &&
-      RegExp(r'^\s+iphone_duo_adapt\s*:', multiLine: true)
+      RegExp(r'^\s+flutter_iphone_duo_adapt\s*:', multiLine: true)
           .hasMatch(pubspec.readAsStringSync());
 
   if (json) {
@@ -123,7 +123,7 @@ void main(List<String> args) {
     stdout.writeln();
   }
   if (!hasDependency) {
-    stdout.writeln('Add the package first: flutter pub add iphone_duo_adapt');
+    stdout.writeln('Add the package first: flutter pub add flutter_iphone_duo_adapt');
   }
   if (results.isNotEmpty) {
     stdout.writeln(apply

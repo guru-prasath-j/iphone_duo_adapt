@@ -1,4 +1,4 @@
-#import "./include/iphone_duo_adapt/IphoneDuoAdaptPlugin.h"
+#import "./include/flutter_iphone_duo_adapt/IphoneDuoAdaptPlugin.h"
 
 #import <UIKit/UIKit.h>
 
